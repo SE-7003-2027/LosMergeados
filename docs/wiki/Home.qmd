@@ -1,0 +1,28 @@
+## title: "Inicio"
+
+# Sistema de Recomendación de Libros, Cómics y Manga
+
+¡Bienvenido a la Wiki de LosMergeados!
+
+## ¿De qué trata el proyecto?
+
+El proyecto busca desarrollar un sistema de recomendación de libros, cómics y manga disponibles en México, considerando las preferencias y valoraciones de los usuarios.
+
+## Objetivo
+
+Definir y desarrollar progresivamente una solución que permita a los usuarios descubrir contenido que se adapte a sus intereses.
+
+## Documentación del proyecto
+
+En esta Wiki se organizará la información relacionada con:
+
+* **Equipo y organización:** integrantes, responsabilidades y colaboración.
+* **Requerimientos:** necesidades y funcionalidades del sistema.
+* **Diseño:** arquitectura, decisiones técnicas y componentes.
+* **Investigación:** fuentes de datos, APIs y algoritmos de recomendación.
+
+La documentación se actualizará conforme avance el proyecto y se validen las decisiones del equipo.
+
+## Repositorio
+
+El código fuente y los archivos de trabajo se encuentran en el repositorio de GitHub de LosMergeados.
