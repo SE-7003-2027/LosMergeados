@@ -1,0 +1,64 @@
+---
+title: "Inicio"
+---
+
+# Sistema de Recomendación de Libros, Cómics y Manga
+
+¡Bienvenido a la Wiki de LosMergeados!
+
+## ¿De qué trata el proyecto?
+
+El proyecto busca desarrollar un sistema de recomendación de libros, cómics y manga disponibles en México, considerando las preferencias y valoraciones de los usuarios. Las obras se pueden explorar y organizar por **autor**, **género** y **estatus de publicación** (en publicación, finalizado, en pausa, cancelado).
+
+## Objetivo
+
+Definir y desarrollar progresivamente una solución que permita a los usuarios descubrir contenido que se adapte a sus intereses.
+
+## Origen del equipo
+
+LosMergeados se formó al unir a los integrantes que estaban trabajando en dos equipos que habían elegido el mismo proyecto: **Git-Wreckers** y **Equipo 7**. El repositorio parte de lo mejor de ambos: el código de Equipo 7 (Spring Boot) y la documentación de Git-Wreckers (PRD, RFC, arquitectura e investigación). Los detalles están en [Decisión de unificación](Decision-de-unificacion).
+
+## Documentación del proyecto
+
+### Requerimientos y diseño
+
+| Página | Para qué sirve |
+|---|---|
+| [PRD](PRD) | Qué debe hacer el sistema: requisitos, historias de usuario y prioridades |
+| [RFC](RFC) | Cómo se construye: decisiones técnicas |
+| [Arquitectura](Arquitectura) | Componentes del sistema y organización del código |
+| [Modelo de datos](Modelo-de-datos) | Qué información maneja una obra, hoy y a futuro |
+| [Decisión de unificación](Decision-de-unificacion) | Qué se tomó de cada equipo y por qué |
+
+### Investigación (SPIKEs)
+
+| Página | Para qué sirve |
+|---|---|
+| [Evaluación de tecnologías](Evaluacion-de-tecnologias) | Alternativas de frontend, backend y base de datos |
+| [Fuentes de datos y APIs](Fuentes-de-datos-y-APIs) | De dónde obtener el catálogo y la disponibilidad en México |
+| [Algoritmos de recomendación](Algoritmos-de-recomendacion) | Basado en contenido, colaborativo e híbrido |
+| [Prueba técnica de framework](Prueba-tecnica-backend-framework) | Antecedente: Flask vs FastAPI |
+
+### Uso y desarrollo
+
+| Página | Para qué sirve |
+|---|---|
+| [Instalación y ejecución](Instalacion-y-ejecucion) | Levantar el proyecto desde cero |
+| [API REST](API-REST) | Endpoints disponibles |
+| [Vista web](Vista-web) | La interfaz para explorar el catálogo |
+| [Guía de colaboración](Guia-de-colaboracion) | Ramas, commits, Pull Requests y wiki |
+| [Roadmap de sprints](Roadmap-de-sprints) | Qué se ha hecho y qué sigue |
+
+## Estado actual
+
+- ✅ Proyecto Spring Boot 3 + Maven con Java 21
+- ✅ API REST del catálogo: listado con filtros por formato y estatus, detalle por id y estado del servicio
+- ✅ Documentación interactiva de la API (Swagger UI)
+- ✅ Vista web con búsqueda, filtros, agrupación por autor, género y estatus, y skeletons de carga
+- ✅ Pruebas automatizadas (JUnit 5 + MockMvc)
+- ✅ PRD, RFC, arquitectura e investigación documentados
+- 📋 Base de datos, usuarios, valoraciones y motor de recomendaciones (próximos sprints)
+
+## Repositorio
+
+El código fuente y los archivos de trabajo se encuentran en el repositorio de GitHub de LosMergeados: <https://github.com/SE-7003-2027/LosMergeados>

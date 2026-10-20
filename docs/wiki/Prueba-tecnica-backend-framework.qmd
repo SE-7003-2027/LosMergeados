@@ -1,0 +1,45 @@
+---
+title: "Prueba técnica: Flask vs FastAPI (antecedente)"
+---
+
+> **Documento histórico.** Esta prueba fue realizada por el equipo Git-Wreckers cuando el backend se planeaba en Python. Al formarse LosMergeados se adoptó **Java + Spring Boot** (ver [Decisión de unificación](Decision-de-unificacion)). Se conserva porque sus criterios siguen siendo útiles: las ventajas que se valoraron de FastAPI (validación automática y documentación interactiva) se cubren en el proyecto actual con Bean Validation y Swagger UI (`/swagger-ui.html`).
+
+Relacionado con la Issue #29 del repositorio de Git-Wreckers y con la seccion "Consideracion inicial para el backend" del RFC.
+
+## Contexto
+
+El RFC propone Python como base del backend, pero deja pendiente el framework especifico entre Flask y FastAPI, y pide realizar pruebas pequenas antes de cerrar esta decision.
+
+Esta prueba compara ambas alternativas implementando los mismos endpoints minimos en cada una:
+
+- GET /health
+- GET /libros
+- GET /libros/{id}
+
+Código de la prueba: `backend/spikes/flask-vs-fastapi/` en el repositorio [Git-Wreckers](https://github.com/SE-7003-2027/Git-Wreckers) (incluye ambas implementaciones y sus pruebas automatizadas con pytest). No se trasladó a este repositorio porque el backend actual es Java.
+
+## Resultados por criterio
+
+| Criterio | Flask | FastAPI |
+|---|---|---|
+| Facilidad de configuracion | Muy simple, una sola dependencia (flask) | Requiere fastapi mas un servidor ASGI (uvicorn) |
+| Lineas de codigo para los mismos 3 endpoints | 40 | 46 (incluye modelos con Pydantic) |
+| Validacion de datos de entrada | Manual | Automatica via Pydantic; un id no numerico devuelve 422 con el detalle del error sin codigo extra |
+| Documentacion de la API | No incluida por defecto | Genera automaticamente documentacion interactiva (/docs, /redoc) |
+| Facilidad de pruebas | app.test_client(), directo con pytest | TestClient (basado en httpx/Starlette), igual de directo con pytest |
+| Rendimiento y concurrencia | Sincrono por defecto (WSGI) | Asincrono nativo (ASGI); mejor preparado para llamadas a APIs externas o a la base de datos sin bloquear |
+| Curva de aprendizaje | Muy baja | Ligeramente mayor por los type hints y Pydantic, pero bien documentada |
+| Documentacion y comunidad | Muy amplia, framework maduro | Amplia tambien, con guias oficiales muy completas |
+| Compatibilidad con necesidades del sistema | Cubre lo necesario, pero las validaciones se deben escribir a mano | Los modelos con Pydantic facilitan validar datos de endpoints como registro de calificaciones o busqueda |
+
+## Observaciones
+
+Ambos frameworks implementaron los mismos 3 endpoints sin complicaciones y las 4 pruebas automatizadas pasaron en los dos casos. La diferencia mas relevante para este proyecto es la validacion automatica de datos (Pydantic) y la documentacion interactiva autogenerada de FastAPI, utiles conforme se agreguen endpoints mas complejos (registro/login, calificaciones, recomendaciones). FastAPI tambien da soporte async nativo, relevante si mas adelante se hacen llamadas a APIs externas para obtener datos de libros, manga y comics sin bloquear el servidor. Flask sigue siendo una alternativa perfectamente valida y mas simple si el equipo prioriza la curva de aprendizaje minima por encima de las funcionalidades adicionales.
+
+## Recomendacion
+
+Se propone usar FastAPI como framework definitivo del backend, por la validacion automatica de datos y la documentacion autogenerada, que ayudan directamente a las funcionalidades ya previstas en el PRD (busqueda, calificaciones, recomendaciones) y facilitan que el resto del equipo consuma la API sin depender de documentacion manual escrita a mano.
+
+Queda abierto a discusion en la revision del equipo antes de cerrarse como decision definitiva del RFC.
+
+Prueba realizada por Alair González como iniciativa dentro del backlog abierto del proyecto (no fue una tarea asignada individualmente).

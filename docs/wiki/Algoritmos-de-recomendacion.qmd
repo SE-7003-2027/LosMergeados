@@ -1,0 +1,397 @@
+---
+title: "SPIKE - Algoritmos de recomendación"
+---
+
+# 1. Objetivo
+
+El objetivo de este SPIKE es investigar diferentes algoritmos y enfoques que podrían utilizarse para implementar el sistema de recomendaciones del proyecto.
+
+El proyecto busca recomendar libros, cómics y manga disponibles en México tomando en cuenta la información de los contenidos y las preferencias de los usuarios.
+
+La intención de esta investigación es conocer las principales alternativas, qué datos necesita cada una, sus ventajas y limitaciones, y qué tan adecuadas podrían ser para nuestro proyecto.
+
+Esta investigación presenta una propuesta inicial, pero la decisión técnica definitiva dependerá de las pruebas y de la disponibilidad de datos del proyecto.
+
+# 2. Contexto del proyecto
+
+El proyecto será un sistema web en el que los usuarios podrán explorar libros, cómics y manga, consultar información sobre ellos y calificarlos.
+
+Con estas interacciones se busca generar recomendaciones personalizadas.
+
+Para lograrlo, el sistema necesitará relacionar la información de los contenidos con las preferencias de los usuarios.
+
+Algunos ejemplos de información que podría utilizarse son:
+
+* Género.
+* Autor.
+* Editorial.
+* Categorías.
+* Etiquetas.
+* Idioma.
+* Formato.
+* Descripción o sinopsis.
+* Calificaciones de los usuarios.
+* Historial de contenidos consultados o calificados.
+* Disponibilidad reportada para México.
+
+La disponibilidad en México se considera principalmente como un criterio para determinar qué contenidos pueden mostrarse al usuario, mientras que las características del contenido pueden utilizarse para calcular similitud.
+
+# 3. Alternativas investigadas
+
+Para este proyecto se consideran principalmente tres enfoques:
+
+1. Filtrado basado en contenido.
+2. Filtrado colaborativo.
+3. Sistema híbrido.
+
+Cada enfoque utiliza información diferente para generar recomendaciones.
+
+# 3.1 Filtrado basado en contenido
+
+El filtrado basado en contenido recomienda elementos que tienen características similares a los elementos que le han interesado anteriormente al usuario.
+
+Por ejemplo, si un usuario califica positivamente varios mangas de acción y fantasía, el sistema podría buscar otros contenidos que compartan esas características.
+
+En nuestro proyecto podrían utilizarse características como:
+
+* Género.
+* Autor.
+* Categorías.
+* Etiquetas.
+* Descripción o sinopsis.
+* Tipo de contenido.
+* Idioma.
+* Editorial.
+
+Una forma sencilla de implementar este enfoque sería representar cada contenido mediante un conjunto de características y calcular qué tan similares son entre sí.
+
+Por ejemplo:
+
+```text
+Contenido A
+- Manga
+- Fantasía
+- Acción
+- Aventura
+
+Contenido B
+- Manga
+- Fantasía
+- Acción
+- Aventura
+
+Contenido C
+- Cómic
+- Superhéroes
+- Acción
+```
+
+En este caso, A y B tendrían características más similares que A y C.
+
+## Ventajas
+
+* No necesita una gran cantidad de usuarios para comenzar a funcionar.
+* Puede generar recomendaciones basándose directamente en las características del contenido.
+* Es relativamente sencillo de explicar.
+* Puede funcionar desde las primeras interacciones de un usuario.
+* Puede utilizar información disponible desde las fuentes externas de datos.
+
+## Limitaciones
+
+* Las recomendaciones pueden terminar siendo demasiado similares entre sí.
+* Necesita información suficientemente descriptiva de los contenidos.
+* Si los datos disponibles tienen pocas características, las recomendaciones pueden ser poco útiles.
+* Puede ser más difícil recomendar contenido diferente al historial conocido del usuario.
+* La calidad de las recomendaciones dependerá de la representación de las características.
+
+# 3.2 Filtrado colaborativo
+
+El filtrado colaborativo utiliza las interacciones de varios usuarios para generar recomendaciones.
+
+En lugar de centrarse principalmente en las características de los contenidos, busca patrones entre los usuarios.
+
+Por ejemplo, si varios usuarios califican positivamente los mismos libros y uno de ellos también califica positivamente otro libro, ese contenido podría recomendarse a los demás usuarios con preferencias similares.
+
+Un ejemplo sencillo sería:
+
+```text
+Usuario A:
+Libro 1 ★★★★★
+Libro 2 ★★★★★
+Libro 3 ★★★★☆
+
+Usuario B:
+Libro 1 ★★★★★
+Libro 2 ★★★★★
+Libro 3 ?
+```
+
+Como los usuarios tienen comportamientos similares con algunos contenidos, el sistema podría considerar recomendar el Libro 3 al Usuario B.
+
+## Ventajas
+
+* Puede encontrar relaciones que no son evidentes solamente mediante las características de los contenidos.
+* Puede generar recomendaciones personalizadas a partir del comportamiento de los usuarios.
+* No depende completamente de tener descripciones detalladas de cada contenido.
+
+## Limitaciones
+
+* Necesita suficientes usuarios e interacciones para funcionar correctamente.
+* Puede presentar el problema de "cold start".
+* Un usuario nuevo tiene poca información disponible para generar recomendaciones.
+* Un contenido nuevo tampoco tendrá suficientes calificaciones para relacionarlo con otros usuarios.
+* Con pocos datos, las recomendaciones pueden ser poco representativas.
+
+# 3.3 Sistema híbrido
+
+Un sistema híbrido combina dos o más técnicas de recomendación.
+
+En nuestro caso, podría combinar el filtrado basado en contenido con el filtrado colaborativo.
+
+Por ejemplo, el sistema podría considerar:
+
+```text
+Características del contenido
+            +
+Calificaciones de usuarios
+            ↓
+      Recomendación
+```
+
+De esta forma, cuando exista suficiente información de usuarios se podrían aprovechar sus calificaciones, mientras que las características del contenido podrían utilizarse para complementar las recomendaciones.
+
+También podría ayudar con el problema de usuarios nuevos, ya que inicialmente se podrían generar recomendaciones utilizando las características seleccionadas por el usuario.
+
+## Ventajas
+
+* Permite aprovechar diferentes tipos de información.
+* Puede reducir algunas de las limitaciones de utilizar un único algoritmo.
+* Puede combinar características del contenido con comportamiento de los usuarios.
+* Puede ofrecer recomendaciones incluso cuando uno de los tipos de información es limitado.
+
+## Limitaciones
+
+* Es más complejo de implementar.
+* Requiere mantener diferentes fuentes de información.
+* Puede requerir más trabajo para ajustar la forma en que se combinan los resultados.
+* La implementación puede ser innecesariamente compleja si el proyecto todavía tiene pocos datos.
+
+# 4. Comparación de alternativas
+
+| Característica                      | Basado en contenido | Colaborativo      | Híbrido    |
+| ----------------------------------- | ------------------- | ----------------- | ---------- |
+| Características del contenido       | Principal           | No necesariamente | Principal  |
+| Calificaciones de usuarios          | Opcional            | Principal         | Principal  |
+| Cantidad de usuarios necesaria      | Baja inicialmente   | Mayor             | Mayor      |
+| Problema de usuario nuevo           | Menor               | Alto              | Menor      |
+| Problema de contenido nuevo         | Menor               | Alto              | Menor      |
+| Complejidad inicial                 | Baja/Media          | Media             | Alta       |
+| Dependencia de interacciones        | Baja                | Alta              | Media/Alta |
+| Posibilidad de combinar información | Sí                  | Sí                | Sí         |
+
+Esta comparación es cualitativa y deberá complementarse con una prueba técnica antes de tomar una decisión definitiva.
+
+# 5. Datos necesarios
+
+Dependiendo del algoritmo seleccionado, el sistema necesitará diferentes tipos de información.
+
+| Dato                  | Basado en contenido          | Colaborativo                 | Híbrido                      |
+| --------------------- | ---------------------------- | ---------------------------- | ---------------------------- |
+| Género                | Sí                           | No necesariamente            | Sí                           |
+| Autor                 | Sí                           | No necesariamente            | Sí                           |
+| Categorías            | Sí                           | No necesariamente            | Sí                           |
+| Etiquetas             | Sí                           | No necesariamente            | Sí                           |
+| Sinopsis              | Opcional                     | No                           | Opcional                     |
+| Calificaciones        | No necesariamente            | Sí                           | Sí                           |
+| Historial del usuario | Opcional                     | Sí                           | Sí                           |
+| Usuarios similares    | No                           | Sí                           | Sí                           |
+| Disponibilidad        | Puede utilizarse como filtro | Puede utilizarse como filtro | Puede utilizarse como filtro |
+
+Además de los datos utilizados directamente por el algoritmo, será importante almacenar las interacciones de los usuarios.
+
+Por ejemplo:
+
+```text
+Usuario
+    ↓
+Consulta contenido
+    ↓
+Califica contenido
+    ↓
+Se almacena interacción
+    ↓
+Sistema de recomendación
+```
+
+Estas interacciones podrían utilizarse posteriormente para mejorar las recomendaciones e incorporar técnicas colaborativas.
+
+# 6. Problema de Cold Start
+
+Uno de los problemas importantes en los sistemas de recomendación es el llamado **cold start**.
+
+Se presenta principalmente en dos situaciones:
+
+* Cuando entra un usuario nuevo.
+* Cuando se agrega un contenido nuevo.
+
+## Usuario nuevo
+
+Un usuario nuevo todavía no tiene suficientes calificaciones o interacciones.
+
+Una posible solución sería solicitar algunas preferencias iniciales durante el registro o en el primer uso del sistema.
+
+Por ejemplo:
+
+```text
+¿Qué géneros te interesan?
+
+[ ] Fantasía
+[ ] Ciencia ficción
+[ ] Acción
+[ ] Romance
+[ ] Terror
+```
+
+Estas preferencias podrían utilizarse para generar las primeras recomendaciones.
+
+## Contenido nuevo
+
+Un contenido nuevo tampoco tendrá calificaciones de usuarios.
+
+En este caso, sus características pueden utilizarse para compararlo con otros contenidos existentes.
+
+Esto hace que el filtrado basado en contenido pueda ser útil como alternativa inicial o como complemento del filtrado colaborativo.
+
+# 7. Consideraciones para el proyecto
+
+Nuestro proyecto tiene algunas características que deben tomarse en cuenta antes de elegir una solución definitiva.
+
+Primero, es un proyecto académico y durante las primeras etapas probablemente no tendremos una gran cantidad de usuarios ni de calificaciones.
+
+Por esta razón, una solución que dependa completamente de una gran cantidad de interacciones entre usuarios podría ser difícil de aprovechar inicialmente.
+
+Por otro lado, la información de los libros, cómics y manga puede obtenerse de fuentes externas y puede incluir características útiles como género, autor, título, descripción y categorías.
+
+Esto hace que un enfoque basado en contenido sea una alternativa inicial que puede evaluarse mediante una prueba técnica.
+
+También sería posible utilizar las calificaciones que los usuarios generen conforme el sistema tenga más información.
+
+La decisión deberá considerar también las características que realmente puedan obtenerse de las fuentes seleccionadas y la forma en que dichas características puedan normalizarse.
+
+# 8. Propuesta inicial
+
+A partir de la investigación realizada, se propone evaluar inicialmente un enfoque basado en contenido y mantener preparada la arquitectura para incorporar posteriormente información colaborativa.
+
+Una posible evolución sería:
+
+```text
+Primera etapa
+    ↓
+Características del contenido
+    ↓
+Recomendaciones basadas en similitud
+
+Segunda etapa
+    ↓
+Se acumulan calificaciones de usuarios
+    ↓
+Se incorporan patrones de comportamiento
+
+Tercera etapa
+    ↓
+Contenido + comportamiento de usuarios
+    ↓
+Evaluación de un sistema híbrido
+```
+
+Esta propuesta permite comenzar con una implementación más sencilla y evolucionar el sistema conforme aumente la cantidad de datos disponibles.
+
+La propuesta no constituye todavía una decisión técnica definitiva.
+
+# 9. Prueba técnica propuesta
+
+Antes de implementar el algoritmo definitivo, se propone realizar una prueba técnica utilizando una muestra de contenidos obtenidos de las fuentes de datos seleccionadas.
+
+La prueba deberá considerar, como mínimo:
+
+* Cantidad de contenidos disponibles.
+* Características disponibles por contenido.
+* Porcentaje de contenidos con información suficiente para calcular similitud.
+* Facilidad para normalizar géneros, categorías y etiquetas.
+* Calidad de las coincidencias entre contenidos similares.
+* Tiempo de cálculo de las recomendaciones.
+* Comportamiento con usuarios que tienen pocas interacciones.
+* Posibilidad de aplicar filtros relacionados con disponibilidad en México.
+* Complejidad de implementación y mantenimiento.
+
+Como resultado de la prueba se deberá determinar si el enfoque basado en contenido es suficiente para la primera versión o si es necesario modificar la propuesta.
+
+# 10. Posible funcionamiento
+
+De forma general, el sistema podría seguir un flujo como el siguiente:
+
+```text
+             Usuario
+                |
+                v
+       Preferencias / Calificaciones
+                |
+                v
+       Sistema de recomendación
+                |
+       +--------+--------+
+       |                 |
+       v                 v
+Características      Interacciones
+del contenido        de usuarios
+       |                 |
+       +--------+--------+
+                |
+                v
+       Cálculo de similitud
+                |
+                v
+       Aplicación de filtros
+                |
+                v
+        Lista recomendada
+                |
+                v
+             Usuario
+```
+
+En una primera versión, el cálculo podría centrarse principalmente en las características del contenido.
+
+Las interacciones de los usuarios podrían incorporarse posteriormente para evaluar un enfoque colaborativo o híbrido.
+
+El cálculo exacto de similitud y la forma de combinar las diferentes características dependerán de los datos y tecnologías que finalmente se seleccionen.
+
+# 11. Decisiones pendientes
+
+Todavía quedan algunos aspectos por definir antes de implementar el sistema:
+
+* Qué algoritmo o combinación de algoritmos se utilizará finalmente.
+* Qué características de los contenidos tendrán mayor importancia.
+* Cómo se representarán los contenidos.
+* Cómo se calculará la similitud.
+* Cómo se utilizarán las calificaciones de los usuarios.
+* Cómo se manejarán usuarios nuevos.
+* Cómo se manejarán contenidos nuevos.
+* Qué cantidad de datos será necesaria para incorporar filtrado colaborativo.
+* Qué tecnologías o librerías se utilizarán para implementar el algoritmo.
+* Cómo se evaluará la calidad de las recomendaciones.
+* Cómo se aplicarán los filtros relacionados con disponibilidad en México.
+
+Estas decisiones deberán documentarse posteriormente en el RFC cuando se tengan los resultados de las investigaciones y pruebas correspondientes.
+
+# 12. Conclusión
+
+Existen diferentes alternativas para implementar el sistema de recomendaciones del proyecto.
+
+El filtrado basado en contenido permite comenzar utilizando las características de los libros, cómics y manga, mientras que el filtrado colaborativo puede aprovechar las interacciones entre usuarios cuando exista suficiente información.
+
+Un sistema híbrido podría combinar ambos enfoques y permitir que el sistema evolucione conforme aumenten los datos disponibles.
+
+Por el momento, la propuesta inicial es evaluar una solución basada en contenido y mantener la posibilidad de incorporar posteriormente un componente colaborativo.
+
+Esta propuesta no se considera una decisión técnica definitiva. La elección final deberá realizarse después de evaluar las fuentes de datos, las tecnologías disponibles y los resultados de la prueba técnica propuesta.

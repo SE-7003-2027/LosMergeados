@@ -1,0 +1,90 @@
+---
+title: "API REST"
+---
+
+URL base en local: `http://localhost:8080`
+
+La documentación interactiva (generada automáticamente con OpenAPI) está en <http://localhost:8080/swagger-ui.html>. Desde ahí se puede probar cada endpoint sin escribir comandos.
+
+## Endpoints
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/api/books` | Lista el catálogo, con filtros opcionales `format` y `status` |
+| GET | `/api/books/{id}` | Detalle de una obra |
+| GET | `/api/health` | Estado del servicio |
+| GET | `/v3/api-docs` | Especificación OpenAPI en JSON |
+
+## GET /api/books
+
+Devuelve las obras del catálogo. Sin parámetros devuelve todas; los filtros se pueden combinar.
+
+| Parámetro | Valores | Ejemplo |
+|---|---|---|
+| `format` | `BOOK`, `COMIC`, `MANGA` | `/api/books?format=MANGA` |
+| `status` | `ONGOING`, `COMPLETED`, `HIATUS`, `CANCELLED` | `/api/books?status=ONGOING` |
+
+**Respuesta** — `200 OK`, `application/json`
+
+```json
+[
+  {
+    "id": 2,
+    "title": "Akira",
+    "author": "Katsuhiro Otomo",
+    "genre": "Ciencia ficción",
+    "format": "MANGA",
+    "status": "COMPLETED"
+  }
+]
+```
+
+Si ninguna obra cumple los filtros, la respuesta es `200` con una lista vacía (`[]`). Un valor que no existe (por ejemplo `?format=REVISTA`) responde `400 Bad Request`.
+
+Los valores posibles de `format` y `status` están en [Modelo de datos](Modelo-de-datos).
+
+## GET /api/books/{id}
+
+Devuelve una obra.
+
+| Caso | Respuesta |
+|---|---|
+| La obra existe | `200 OK` con la obra |
+| No existe | `404 Not Found` con `"detail": "Obra no encontrada"` |
+| El id no es numérico (`/api/books/abc`) | `400 Bad Request` |
+
+## Formato de los errores
+
+Los errores siguen el estándar *Problem Details* (RFC 9457), con tipo de contenido `application/problem+json`:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Not Found",
+  "status": 404,
+  "detail": "Obra no encontrada",
+  "instance": "/api/books/999"
+}
+```
+
+Nunca se incluye información interna del servidor (trazas de error).
+
+## GET /api/health
+
+Responde `{"status": "ok"}` cuando la aplicación está arriba.
+
+## Probarlo desde la terminal
+
+```bash
+curl http://localhost:8080/api/books
+curl "http://localhost:8080/api/books?format=MANGA&status=ONGOING"
+curl http://localhost:8080/api/books/3
+curl http://localhost:8080/api/health
+```
+
+## Pendiente
+
+- Búsqueda por texto en el servidor (RF03 del [PRD](PRD))
+- Paginación
+- Registro, inicio de sesión y valoraciones (RF01, RF02, RF07)
+- Endpoint de recomendaciones (RF09)

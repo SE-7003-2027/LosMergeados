@@ -1,0 +1,55 @@
+---
+title: "Instalación y ejecución"
+---
+
+## Requisitos
+
+- **Java 21** (JDK)
+- **Git**
+
+Maven no hace falta instalarlo: el repositorio incluye el *wrapper* (`mvnw`). Docker y PostgreSQL **todavía no son necesarios**, porque los datos viven en memoria.
+
+Para publicar la wiki también se necesita **Quarto** (ver `scripts/README.md`).
+
+## Pasos
+
+1. Clona el repositorio:
+
+   ```bash
+   git clone https://github.com/SE-7003-2027/LosMergeados.git
+   cd LosMergeados
+   ```
+
+2. Levanta la aplicación:
+
+   ```bash
+   ./mvnw spring-boot:run
+   ```
+
+   En Windows con PowerShell o CMD: `.\mvnw.cmd spring-boot:run`
+
+3. Abre en el navegador:
+
+   | URL | Qué encuentras |
+   |---|---|
+   | <http://localhost:8080> | La [vista web](Vista-web) |
+   | <http://localhost:8080/api/books> | El JSON del catálogo ([API REST](API-REST)) |
+   | <http://localhost:8080/swagger-ui.html> | Documentación interactiva de la API |
+   | <http://localhost:8080/api/health> | Estado del servicio |
+
+## Correr las pruebas
+
+```bash
+./mvnw test
+```
+
+Corre las pruebas antes de abrir un Pull Request (ver [Guía de colaboración](Guia-de-colaboracion)).
+
+## Problemas frecuentes
+
+| Síntoma | Causa probable | Solución |
+|---|---|---|
+| `Port 8080 was already in use` | Otro proceso usa el puerto | Cierra ese proceso o cambia `server.port` en `src/main/resources/application.properties` |
+| `invalid target release: 21` | El JDK activo es anterior a 21 | Instala JDK 21 y revisa `java -version` |
+| `./mvnw: Permission denied` | El script perdió el permiso de ejecución | `chmod +x mvnw` (o `git update-index --chmod=+x mvnw` para guardarlo en Git) |
+| La vista muestra "No pudimos cargar el catálogo" | La app no está corriendo o falló al arrancar | Revisa la terminal donde ejecutaste `spring-boot:run` |

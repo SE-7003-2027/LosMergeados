@@ -1,0 +1,26 @@
+**LosMergeados**
+
+- [Inicio](Home)
+
+**Requerimientos y diseño**
+
+- [PRD](PRD)
+- [RFC](RFC)
+- [Arquitectura](Arquitectura)
+- [Modelo de datos](Modelo-de-datos)
+- [Decisión de unificación](Decision-de-unificacion)
+
+**Investigación**
+
+- [Evaluación de tecnologías](Evaluacion-de-tecnologias)
+- [Fuentes de datos y APIs](Fuentes-de-datos-y-APIs)
+- [Algoritmos de recomendación](Algoritmos-de-recomendacion)
+- [Prueba técnica de framework](Prueba-tecnica-backend-framework)
+
+**Uso y desarrollo**
+
+- [Instalación y ejecución](Instalacion-y-ejecucion)
+- [API REST](API-REST)
+- [Vista web](Vista-web)
+- [Guía de colaboración](Guia-de-colaboracion)
+- [Roadmap de sprints](Roadmap-de-sprints)

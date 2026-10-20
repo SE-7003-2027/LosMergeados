@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Recomendador de lecturas · LosMergeados</title>
+    <meta name="description" content="Catálogo de libros, cómics y manga disponibles en México.">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header class="hero">
+        <div class="container">
+            <p class="eyebrow">LosMergeados</p>
+            <h1>Recomendador de lecturas</h1>
+            <p class="lead">Libros, cómics y manga disponibles en México. Explora el catálogo y organízalo por autor, género o estatus de publicación.</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="toolbar" aria-label="Filtros del catálogo">
+            <label class="field field-search">
+                <span class="field-label">Buscar</span>
+                <input id="search" type="search" placeholder="Título, autor o género…" autocomplete="off">
+            </label>
+
+            <div class="field">
+                <span class="field-label" id="format-label">Formato</span>
+                <div class="chips" id="format-chips" role="group" aria-labelledby="format-label"></div>
+            </div>
+
+            <label class="field">
+                <span class="field-label">Estatus</span>
+                <select id="status"></select>
+            </label>
+
+            <label class="field">
+                <span class="field-label">Agrupar por</span>
+                <select id="group-by">
+                    <option value="genre">Género</option>
+                    <option value="author">Autor</option>
+                    <option value="status">Estatus de publicación</option>
+                    <option value="none">Sin agrupar</option>
+                </select>
+            </label>
+        </section>
+
+        <p class="summary" id="summary" role="status" aria-live="polite"></p>
+
+        <div id="content" aria-busy="true"></div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Datos de demostración en memoria · La base de datos se conectará en un próximo sprint.</p>
+            <p><a href="https://github.com/SE-7003-2027/LosMergeados">Repositorio en GitHub</a> · <a href="/api/books">API JSON</a> · <a href="/swagger-ui.html">Documentación de la API</a></p>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
