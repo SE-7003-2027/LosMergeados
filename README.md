@@ -36,3 +36,5 @@ La estructura del proyecto se irá definiendo conforme avance el desarrollo.
 Organización del proyecto
 
 La documentación del proyecto, los requerimientos, decisiones de diseño y demás información relacionada con el desarrollo se irán agregando conforme avance cada sprint.
+
+El [inventario y plan de consolidación de ambos proyectos](docs/wiki/Consolidacion-de-avances.qmd) documenta los avances reutilizables de Git-Wreckers y Equipo 7, las decisiones de integración y los pendientes de la issue #3.
