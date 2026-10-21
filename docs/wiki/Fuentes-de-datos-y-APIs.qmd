@@ -1,0 +1,148 @@
+---
+title: "SPIKE - Evaluación de fuentes externas de información"
+---
+
+**Issue:** [#5](https://github.com/SE-7003-2027/LosMergeados/issues/5)
+
+**Fecha de evaluación:** 21 de octubre de 2026
+
+**Estado:** Evaluación documentada; recomendación sujeta a revisión del equipo.
+
+## Objetivo y antecedentes
+
+Determinar cómo obtener metadatos de libros, manga y cómics para alimentar el catálogo. Se revisaron los campos, requisitos de acceso, límites y condiciones de Google Books, AniList, Comic Vine y Open Library; además se ejecutaron consultas de muestra.
+
+La propuesta de fuentes existente en [Sprint4, commit f9a66d1](https://github.com/SE-7003-2027/LosMergeados/blob/f9a66d176b502640b728d0d7366cc1283f4b104a/docs/wiki/Fuentes-de-datos-y-APIs.qmd) planteaba Google Books para libros, AniList para manga y Comic Vine como candidata para cómics, pendientes de validación técnica. Esta evaluación retoma esa propuesta y añade evidencia. Open Library se prueba como alternativa ante los bloqueos de las otras fuentes. Jikan, Gutendex y Mercado Libre quedan como antecedentes; no se evaluaron sus APIs en esta muestra.
+
+Esta tarea no incorpora proveedores a la aplicación. La implementación del cliente, manejo de fallos y transformación al modelo interno corresponde a [#6](https://github.com/SE-7003-2027/LosMergeados/issues/6), y el acuerdo del modelo de datos a [#4](https://github.com/SE-7003-2027/LosMergeados/issues/4).
+
+## Consultas realizadas
+
+El 21 de octubre de 2026 se probaron búsquedas de diez títulos por categoría y búsquedas sin resultados. Se consultó por título y autor en Google Books y Open Library, por título y formato manga en AniList, y por volúmenes en Comic Vine. Las consultas solicitaron hasta tres candidatos, sin claves de API y respetando los límites de frecuencia. Google Books y Comic Vine se detuvieron tras el primer error de acceso. Los resultados y ejemplos se resumen a continuación; no se descargaron portadas.
+
+## Resultados de las consultas
+
+| Fuente | Consultas ejecutadas | Resultado observado | Alcance de la evidencia |
+|---|---|---|---|
+| Google Books | 1: Dune | HTTP 429, `RESOURCE_EXHAUSTED`, cuota diaria excedida en el acceso sin clave | Prueba del bloqueo de esta ejecución, no de ausencia de libros en Google Books |
+| AniList | 10 títulos y 1 búsqueda inexistente | 10 respuestas HTTP 200 con candidatos; 1 HTTP 200 con lista vacía | Acceso público de lectura y campos de manga comprobados |
+| Comic Vine | 1: Watchmen | HTTP 401 y código interno `100: Invalid API Key` | No se validó cobertura ni calidad de datos sin una clave válida |
+| Open Library | 10 libros, 10 cómics y 1 búsqueda inexistente | 20 respuestas HTTP 200 con candidatos; 1 HTTP 200 con lista vacía | Consulta bibliográfica utilizable para el prototipo, con revisión de identidad de las obras |
+
+En la ejecución registrada se realizaron 34 consultas: 30 con candidatos, dos vacías y dos errores de acceso. Otras 30 consultas previstas se omitieron al detener Google Books y Comic Vine. No se contabilizan las omitidas como búsquedas sin resultados ni como pruebas aprobadas.
+
+### Muestra de manga en AniList
+
+| Búsqueda | Primer candidato, ID | Estatus devuelto |
+|---|---|---|
+| Akira | Akira, `30664` | FINISHED |
+| Berserk | Berserk, `30002` | RELEASING |
+| Fullmetal Alchemist | Fullmetal Alchemist, `30025` | FINISHED |
+| Death Note | Death Note, `30021` | FINISHED |
+| One Piece | One Piece, `30013` | RELEASING |
+| Naruto | Naruto, `30011` | FINISHED |
+| Dragon Ball | Dragon Ball, `30042` | FINISHED |
+| Monster | Monster, `30001` | FINISHED |
+| Slam Dunk | Slam Dunk, `30051` | FINISHED |
+| Chainsaw Man | Chainsaw Man, `105778` | FINISHED |
+
+Son valores recibidos en la fecha de la prueba, no una verificación editorial independiente del estado de cada serie. En los diez primeros candidatos hubo título, estatus, géneros, personal acreditado, fecha y enlace de portada. Los nombres aparecen con distintas romanizaciones, como `Katsuhiro Ootomo` y `Tsugumi Ooba`; la aplicación debe conservar el identificador de la fuente y evitar deduplicar solo por escritura exacta del nombre.
+
+### Muestra bibliográfica en Open Library
+
+| Categoría | Títulos consultados | Resultado |
+|---|---|---|
+| Libros | Dune; The Name of the Wind; Cien años de soledad; La sombra del viento; 1984; The Hobbit; Pride and Prejudice; Frankenstein; Pedro Páramo; Fahrenheit 451 | Las diez búsquedas devolvieron candidatos |
+| Cómics | Watchmen; Saga; The Sandman; Maus; Persepolis; Batman Year One; V for Vendetta; Bone; Hellboy; The Walking Dead | Las diez búsquedas devolvieron candidatos |
+
+En los veinte primeros candidatos se recibieron título, autores, temas, ISBN, idiomas y año inicial de publicación; diecinueve tenían `cover_i`. El primer resultado de Batman Year One no tenía ese campo. Esto mide presencia de metadatos, no precisión del buscador ni calidad visual de las imágenes.
+
+Se observaron diferencias relevantes:
+
+- `1984` devolvió primero `1984 (adaptation)`, con Michael Dean y George Orwell. La consulta por título y autor no garantiza seleccionar la obra original.
+- `Dune` también devolvió Dune Messiah y Children of Dune. Una coincidencia parcial no basta para deduplicar o aceptar una obra.
+- `Saga` devuelve varios volúmenes y `Maus` devuelve partes y recopilaciones. El equipo debe acordar si el catálogo representa serie, obra, tomo o edición antes de unificarlos.
+- El registro de The Name of the Wind incluyó a Patrick Rothfuss y Marc Simonetti dentro de `author_name`: esa lista no distingue todos los roles de participación.
+
+Por ello, «diez consultas con candidatos» no equivale a «diez obras correctamente identificadas». La selección debe contrastar título, créditos, identificador y nivel bibliográfico, como muestran los ejemplos anteriores.
+
+## Comparación de campos y limitaciones
+
+| Fuente | Campos relevantes | Limitaciones para LosMergeados |
+|---|---|---|
+| Google Books, según [referencia de Volume][GB-VOLUME] | `id`, `volumeInfo.title/authors/categories/description/imageLinks/industryIdentifiers/language/publishedDate`; `saleInfo` y `accessInfo` | No se obtuvieron registros en esta prueba. `printType=BOOK` no distingue nuestros tipos libro, cómic y manga; tampoco hay un estatus de publicación equivalente al modelo interno |
+| AniList, según [Media][ANI-MEDIA] y respuestas | `id`, títulos romaji/inglés/nativo, géneros, estatus, fecha, portada y `staff.edges` con rol | El personal incluye autores, dibujantes, traductores y asistentes: no convertir toda la lista en autores. No aporta ISBN ni inventario comercial mexicano en los campos evaluados |
+| Comic Vine, según [documentación][CV-DOC] | Volúmenes, números, títulos, editoriales, imágenes y créditos según el recurso | La búsqueda de una serie y el detalle de un número tienen estructuras distintas. Campos solo revisados documentalmente; calidad y cobertura pendientes de una consulta autorizada |
+| Open Library, según [Search API][OL-SEARCH] y respuestas | `key`, `title`, `author_name`, `subject`, `isbn`, `language`, `first_publish_year`, `cover_i` | La búsqueda devuelve obras y datos agregados de ediciones. Temas no son géneros normalizados; no existe un estatus fiable equivalente a `ONGOING/COMPLETED/HIATUS/CANCELLED` en esta consulta |
+
+La presencia de una URL de imagen no prueba que sea accesible, nítida o reutilizable sin condiciones. Tampoco se comprobó cobertura suficiente en español: los títulos alternativos y los idiomas de varias ediciones no garantizan una edición mexicana concreta.
+
+## Acceso, límites y condiciones
+
+| Fuente | Acceso y límites documentados | Condiciones que afectan la propuesta |
+|---|---|---|
+| Google Books | La [guía][GB-USING] pide identificar la aplicación mediante clave de API o token; consultar metadatos públicos no requiere acceso a una cuenta de usuario. La cuota debe comprobarse en el proyecto propio, no asumir una cifra universal | Respetar [términos][GB-TERMS] y [atribución][GB-BRANDING]. El error observado no demuestra que la cuota del equipo esté agotada: esta ejecución no usó una clave propia |
+| AniList | Las consultas públicas de esta prueba funcionaron sin token. La [página de límites][ANI-LIMITS] advierte de un límite temporal de 30 solicitudes/minuto, frente al normal de 90; las respuestas de la prueba confirmaron `X-RateLimit-Limit: 30` | Los [términos][ANI-TERMS] prohíben acumulación masiva y uso como almacenamiento o respaldo, y restringen servicios competidores. El uso educativo no debe interpretarse como permiso general para copiar la base. Revisar compatibilidad antes de ampliar el prototipo a seguimiento de usuarios |
+| Comic Vine | Requiere cuenta y clave. La [página oficial][CV-API] indica 200 solicitudes por recurso y hora, además de control de ráfagas | Uso no comercial, enlace de atribución y restricciones sobre productos competidores y redistribución/manipulación. No asumir que una normalización y almacenamiento permanente están autorizados; aclararlo antes de elegirla |
+| Open Library | La [guía de API][OL-API] indica 1 solicitud/segundo sin identificación completa y 3 con User-Agent y contacto. La muestra envió nombre del proyecto y URL; mantuvo una frecuencia inferior a 1/segundo sin atribuirse el límite ampliado | Uso de bajo volumen, consultas útiles para personas y caché; no extracción masiva ni infraestructura comercial de alto tráfico. Su [página de licencias][OL-LICENSE] advierte que pueden subsistir derechos sobre contribuciones; no tratar las portadas como dominio público por defecto |
+
+No se crearon cuentas, claves ni proyectos externos. Si el equipo dispone después de claves, podrá repetir las consultas de las fuentes condicionadas sin incluir credenciales en el informe. Se deben respetar `Retry-After` y las cabeceras de cuota; un error no justifica reintentos continuos.
+
+## Recomendación por tipo de contenido
+
+| Contenido | Estrategia propuesta según esta evaluación | Condición y límite |
+|---|---|---|
+| Libros | Open Library para consultas bibliográficas del prototipo; conservar Google Books como candidata para una siguiente validación | Open Library funcionó en las diez consultas, pero requiere revisar obra/edición y coincidencias. Google Books debe repetirse con identificación y cuota propias antes de depender de ella |
+| Manga | AniList para búsquedas de metadatos bajo demanda | Diez consultas y un vacío comprobados. Respetar cuota de 30/minuto observada, roles de créditos y condiciones de uso; no importar el catálogo completo |
+| Cómics | Open Library como cobertura bibliográfica provisional | Se comprobaron diez búsquedas con candidatos. No resuelve bien serie/tomo/número ni estatus. Comic Vine sigue como candidata especializada, condicionada a clave válida y compatibilidad de sus condiciones |
+
+La recomendación ajusta la propuesta anterior por los resultados de acceso; no cambia la decisión de usar Java y Spring Boot. Para #6, la opción con menos requisitos de credenciales es empezar por un cliente de consultas Open Library, con casos de obra original, adaptación, tomo, vacío y fallo. El equipo puede priorizar AniList si necesita primero el estatus de manga. Ninguna de estas elecciones constituye todavía una integración implementada.
+
+### Relación con el modelo interno
+
+Conservar `source`, `sourceId`, `sourceUrl` y `retrievedAt` junto con los metadatos. La pareja fuente/identificador evita confundir ID numéricos de distintos proveedores. El `id` interno no debe sustituirse directamente por el ID externo.
+
+Para AniList, el mapeo propuesto es `FINISHED → COMPLETED`, `RELEASING → ONGOING`, `HIATUS → HIATUS` y `CANCELLED → CANCELLED`, conforme a [MediaStatus][ANI-STATUS]. `NOT_YET_RELEASED` no tiene equivalente en el enum actual y necesita una decisión en #4; no se debe convertir en una obra finalizada o cancelada. Los estatus ausentes en otras fuentes tampoco deben rellenarse con valores inventados.
+
+Mantener autores y géneros como listas en la transformación, o acordar explícitamente cómo reducirlos al modelo actual de un solo valor. En Open Library, un ISBN identifica una edición y un `key` de tipo `/works/` representa una obra; no son identificadores intercambiables. Cualquier persistencia o deduplicación debe respetar además las condiciones del proveedor.
+
+### Disponibilidad en México
+
+No se verificó disponibilidad comercial en México para ninguna obra. Google Books documenta información de venta y acceso dependiente del país, pero no devolvió registros en esta ejecución. Si se utiliza después, solo interpretar información cuando `saleInfo.country` o `accessInfo.country` correspondan a `MX`, registrando estado exacto, enlace y fecha; un acceso de lectura no equivale a inventario de una librería.
+
+`countryOfOrigin: JP` en AniList expresa origen de la obra, no disponibilidad en Japón o México. Los idiomas, ISBN y préstamos digitales de Open Library tampoco prueban venta en México. La interfaz debe mostrar «disponibilidad no verificada» cuando falte evidencia específica.
+
+## Entrega y criterios de aceptación
+
+| Criterio de #5 | Evidencia |
+|---|---|
+| Las fuentes evaluadas cuentan con evidencia o pruebas | Documentación oficial y resumen de 34 consultas en este documento, con ejemplos, errores y muestras omitidas identificados |
+| Se documentaron campos y limitaciones relevantes | Tablas de campos/acceso, ejemplos de ambigüedad y relación con el modelo interno |
+| Se propone fuente o estrategia por tipo | Open Library provisional para libros/cómics; AniList para manga; Google Books y Comic Vine condicionadas a validación con acceso propio |
+
+Queda pendiente que el equipo revise la recomendación y decida el proveedor para #6. Obtener claves y ampliar la validación de las fuentes condicionadas no se declara completado. Esta entrega no publica la wiki ni cierra #5.
+
+## Referencias oficiales
+
+Consultadas el 21 de octubre de 2026. Los límites y condiciones pueden cambiar; verificarlos de nuevo antes de integrar cada proveedor.
+
+- Google Books: [uso de la API][GB-USING], [recurso Volume][GB-VOLUME], [listado][GB-LIST], [términos][GB-TERMS] y [atribución][GB-BRANDING].
+- AniList: [consultas Media][ANI-QUERIES], [campos Media][ANI-MEDIA], [estatus][ANI-STATUS], [límites][ANI-LIMITS] y [términos][ANI-TERMS].
+- Comic Vine: [acceso, límites y condiciones][CV-API] y [recursos y códigos de respuesta][CV-DOC].
+- Open Library: [uso y límites][OL-API], [búsqueda][OL-SEARCH] y [licencias][OL-LICENSE].
+
+[GB-USING]: https://developers.google.com/books/docs/v1/using
+[GB-VOLUME]: https://developers.google.com/books/docs/v1/reference/volumes
+[GB-LIST]: https://developers.google.com/books/docs/v1/reference/volumes/list
+[GB-TERMS]: https://developers.google.com/books/terms
+[GB-BRANDING]: https://developers.google.com/books/branding
+[ANI-QUERIES]: https://anilist.gitbook.io/anilist-apiv2-docs/docs/guide/graphql/queries/media
+[ANI-MEDIA]: https://anilist.gitbook.io/anilist-apiv2-docs/docs/reference/object/media
+[ANI-STATUS]: https://anilist.gitbook.io/anilist-apiv2-docs/docs/reference/enum/mediastatus
+[ANI-LIMITS]: https://anilist.gitbook.io/anilist-apiv2-docs/docs/guide/rate-limiting
+[ANI-TERMS]: https://anilist.gitbook.io/anilist-apiv2-docs/docs/guide/terms-of-use
+[CV-API]: https://comicvine.gamespot.com/api/
+[CV-DOC]: https://comicvine.gamespot.com/api/documentation
+[OL-API]: https://openlibrary.org/developers/api
+[OL-SEARCH]: https://openlibrary.org/dev/docs/api/search
+[OL-LICENSE]: https://openlibrary.org/developers/licensing
