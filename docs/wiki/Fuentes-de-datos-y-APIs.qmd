@@ -2,23 +2,9 @@
 title: "SPIKE - Evaluación de fuentes externas de información"
 ---
 
-**Issue:** [#5](https://github.com/SE-7003-2027/LosMergeados/issues/5)
+## Método y evidencia reproducible
 
-**Fecha de evaluación:** 21 de octubre de 2026
-
-**Estado:** Evaluación documentada; recomendación sujeta a revisión del equipo.
-
-## Objetivo y antecedentes
-
-Determinar cómo obtener metadatos de libros, manga y cómics para alimentar el catálogo. Se revisaron los campos, requisitos de acceso, límites y condiciones de Google Books, AniList, Comic Vine y Open Library; además se ejecutaron consultas de muestra.
-
-La propuesta de fuentes existente en [Sprint4, commit f9a66d1](https://github.com/SE-7003-2027/LosMergeados/blob/f9a66d176b502640b728d0d7366cc1283f4b104a/docs/wiki/Fuentes-de-datos-y-APIs.qmd) planteaba Google Books para libros, AniList para manga y Comic Vine como candidata para cómics, pendientes de validación técnica. Esta evaluación retoma esa propuesta y añade evidencia. Open Library se prueba como alternativa ante los bloqueos de las otras fuentes. Jikan, Gutendex y Mercado Libre quedan como antecedentes; no se evaluaron sus APIs en esta muestra.
-
-Esta tarea no incorpora proveedores a la aplicación. La implementación del cliente, manejo de fallos y transformación al modelo interno corresponde a [#6](https://github.com/SE-7003-2027/LosMergeados/issues/6), y el acuerdo del modelo de datos a [#4](https://github.com/SE-7003-2027/LosMergeados/issues/4).
-
-## Consultas realizadas
-
-El 21 de octubre de 2026 se probaron búsquedas de diez títulos por categoría y búsquedas sin resultados. Se consultó por título y autor en Google Books y Open Library, por título y formato manga en AniList, y por volúmenes en Comic Vine. Las consultas solicitaron hasta tres candidatos, sin claves de API y respetando los límites de frecuencia. Google Books y Comic Vine se detuvieron tras el primer error de acceso. Los resultados y ejemplos se resumen a continuación; no se descargaron portadas.
+Se eligieron diez títulos por categoría, incluyendo obras de los catálogos anteriores y otras de referencia. Se buscó por título y autor en Google Books y Open Library, y por título con `type: MANGA` y `format: MANGA` en AniList. Comic Vine se consultó mediante búsqueda de volúmenes. Cada consulta solicita hasta tres candidatos; no se asume que el primero represente automáticamente la obra buscada.
 
 ## Resultados de las consultas
 
@@ -64,7 +50,7 @@ Se observaron diferencias relevantes:
 - `Saga` devuelve varios volúmenes y `Maus` devuelve partes y recopilaciones. El equipo debe acordar si el catálogo representa serie, obra, tomo o edición antes de unificarlos.
 - El registro de The Name of the Wind incluyó a Patrick Rothfuss y Marc Simonetti dentro de `author_name`: esa lista no distingue todos los roles de participación.
 
-Por ello, «diez consultas con candidatos» no equivale a «diez obras correctamente identificadas». La selección debe contrastar título, créditos, identificador y nivel bibliográfico, como muestran los ejemplos anteriores.
+Por ello, «diez consultas con candidatos» no equivale a «diez obras correctamente identificadas». La selección debe contrastar título, créditos, identificador y nivel bibliográfico. La evidencia conserva los tres candidatos disponibles para revisar estas diferencias.
 
 ## Comparación de campos y limitaciones
 
@@ -86,7 +72,7 @@ La presencia de una URL de imagen no prueba que sea accesible, nítida o reutili
 | Comic Vine | Requiere cuenta y clave. La [página oficial][CV-API] indica 200 solicitudes por recurso y hora, además de control de ráfagas | Uso no comercial, enlace de atribución y restricciones sobre productos competidores y redistribución/manipulación. No asumir que una normalización y almacenamiento permanente están autorizados; aclararlo antes de elegirla |
 | Open Library | La [guía de API][OL-API] indica 1 solicitud/segundo sin identificación completa y 3 con User-Agent y contacto. La muestra envió nombre del proyecto y URL; mantuvo una frecuencia inferior a 1/segundo sin atribuirse el límite ampliado | Uso de bajo volumen, consultas útiles para personas y caché; no extracción masiva ni infraestructura comercial de alto tráfico. Su [página de licencias][OL-LICENSE] advierte que pueden subsistir derechos sobre contribuciones; no tratar las portadas como dominio público por defecto |
 
-No se crearon cuentas, claves ni proyectos externos. Si el equipo dispone después de claves, podrá repetir las consultas de las fuentes condicionadas sin incluir credenciales en el informe. Se deben respetar `Retry-After` y las cabeceras de cuota; un error no justifica reintentos continuos.
+No se crearon cuentas, claves ni proyectos externos. Si el equipo dispone después de claves, el script puede leerlas de variables de entorno sin incorporarlas al informe. Se deben respetar `Retry-After` y las cabeceras de cuota; un error no justifica reintentos continuos.
 
 ## Recomendación por tipo de contenido
 
@@ -112,13 +98,6 @@ No se verificó disponibilidad comercial en México para ninguna obra. Google Bo
 
 `countryOfOrigin: JP` en AniList expresa origen de la obra, no disponibilidad en Japón o México. Los idiomas, ISBN y préstamos digitales de Open Library tampoco prueban venta en México. La interfaz debe mostrar «disponibilidad no verificada» cuando falte evidencia específica.
 
-## Entrega y criterios de aceptación
-
-| Criterio de #5 | Evidencia |
-|---|---|
-| Las fuentes evaluadas cuentan con evidencia o pruebas | Documentación oficial y resumen de 34 consultas en este documento, con ejemplos, errores y muestras omitidas identificados |
-| Se documentaron campos y limitaciones relevantes | Tablas de campos/acceso, ejemplos de ambigüedad y relación con el modelo interno |
-| Se propone fuente o estrategia por tipo | Open Library provisional para libros/cómics; AniList para manga; Google Books y Comic Vine condicionadas a validación con acceso propio |
 
 Queda pendiente que el equipo revise la recomendación y decida el proveedor para #6. Obtener claves y ampliar la validación de las fuentes condicionadas no se declara completado. Esta entrega no publica la wiki ni cierra #5.
 
