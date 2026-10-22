@@ -102,12 +102,7 @@
     }
 
     function filteredBooks() {
-        const query = normalize(state.search.trim());
-        return state.books.filter(book =>
-            (state.format === 'ALL' || book.format === state.format) &&
-            (state.status === 'ALL' || book.status === state.status) &&
-            (!query || normalize(`${book.title} ${book.author} ${book.genre}`).includes(query))
-        );
+        return state.books;
     }
 
     function groupLabel(book) {
@@ -179,7 +174,7 @@
                 state.format = value;
                 els.formatChips.querySelectorAll('.chip').forEach(c =>
                     c.setAttribute('aria-pressed', String(c.dataset.value === value)));
-                render();
+                load();
             });
             return btn;
         };
@@ -194,29 +189,74 @@
             ...Object.entries(STATUSES).map(([value, label]) => el('option', { text: label, attrs: { value } }))
         );
 
-        els.search.addEventListener('input', () => { state.search = els.search.value; render(); });
-        els.status.addEventListener('change', () => { state.status = els.status.value; render(); });
+        els.search.addEventListener('input', () => {
+            state.search = els.search.value;
+            load();
+        });
+
+        els.status.addEventListener('change', () => {
+            state.status = els.status.value;
+            load();
+        });
         els.groupBy.addEventListener('change', () => { state.groupBy = els.groupBy.value; render(); });
     }
 
     /* ---------- Carga de datos ---------- */
+    let latestRequest = 0;
 
     async function load() {
+        const requestId = ++latestRequest;
+
         showSkeletons();
+
         try {
+            const params = new URLSearchParams();
+
+            const query = state.search.trim();
+
+            if (query) {
+                params.set('q', query);
+            }
+
+            if (state.format !== 'ALL') {
+                params.set('format', state.format);
+            }
+
+            if (state.status !== 'ALL') {
+                params.set('status', state.status);
+            }
+
+            const queryString = params.toString();
+            const url = queryString
+                ? `${API_URL}?${queryString}`
+                : API_URL;
+
             const [response] = await Promise.all([
-                fetch(API_URL, { headers: { Accept: 'application/json' } }),
-                new Promise(resolve => setTimeout(resolve, MIN_SKELETON_MS))
+                fetch(url, {
+                    headers: { Accept: 'application/json' }
+                }),
+                new Promise(resolve =>
+                    setTimeout(resolve, MIN_SKELETON_MS)
+                )
             ]);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            state.books = await response.json();
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const books = await response.json();
+
+            if (requestId !== latestRequest) return;
+
+            state.books = books;
             render();
         } catch (error) {
+            if (requestId !== latestRequest) return;
+
             console.error('Error al cargar el catálogo:', error);
             renderError();
         }
     }
-
     buildControls();
     load();
 })();
