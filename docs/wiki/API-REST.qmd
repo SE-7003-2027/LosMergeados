@@ -1,3 +1,4 @@
+
 ---
 title: "API REST"
 ---
@@ -10,19 +11,24 @@ La documentación interactiva (generada automáticamente con OpenAPI) está en <
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/api/books` | Lista el catálogo, con filtros opcionales `format` y `status` |
+| GET | `/api/books` | Lista y busca obras, con filtros opcionales `format`, `status` y `q` |
 | GET | `/api/books/{id}` | Detalle de una obra |
 | GET | `/api/health` | Estado del servicio |
 | GET | `/v3/api-docs` | Especificación OpenAPI en JSON |
 
 ## GET /api/books
 
-Devuelve las obras del catálogo. Sin parámetros devuelve todas; los filtros se pueden combinar.
+Devuelve las obras del catálogo. Sin parámetros devuelve todas; la búsqueda textual y los filtros se pueden combinar.
+
+### Parámetros de consulta
 
 | Parámetro | Valores | Ejemplo |
 |---|---|---|
 | `format` | `BOOK`, `COMIC`, `MANGA` | `/api/books?format=MANGA` |
 | `status` | `ONGOING`, `COMPLETED`, `HIATUS`, `CANCELLED` | `/api/books?status=ONGOING` |
+| `q` | Texto libre | `/api/books?q=Dune` |
+
+Todos los parámetros son opcionales.
 
 **Respuesta** — `200 OK`, `application/json`
 
@@ -39,9 +45,95 @@ Devuelve las obras del catálogo. Sin parámetros devuelve todas; los filtros se
 ]
 ```
 
-Si ninguna obra cumple los filtros, la respuesta es `200` con una lista vacía (`[]`). Un valor que no existe (por ejemplo `?format=REVISTA`) responde `400 Bad Request`.
+Si ninguna obra cumple los filtros, la respuesta es `200` con una lista vacía (`[]`).
+
+Un valor de formato o estatus que no existe, por ejemplo `?format=REVISTA`, responde `400 Bad Request`.
 
 Los valores posibles de `format` y `status` están en [Modelo de datos](Modelo-de-datos).
+
+### Búsqueda textual
+
+El parámetro opcional `q` permite buscar obras por:
+
+- Título.
+- Autor.
+- Género.
+
+La búsqueda se realiza desde el backend mediante `BookCatalog`.
+
+**Características:**
+
+- No distingue entre mayúsculas y minúsculas.
+- Ignora acentos y marcas diacríticas.
+- Permite coincidencias parciales de texto.
+- Elimina espacios al principio y al final de la consulta.
+- Puede combinarse con los filtros `format` y `status`.
+- Devuelve `[]` cuando no existen coincidencias.
+- Una consulta vacía devuelve las obras correspondientes a los demás filtros.
+
+### Ejemplos de búsqueda
+
+**Buscar por título:**
+
+`GET /api/books?q=Dune`
+
+Resultado esperado: Dune, de Frank Herbert.
+
+**Buscar por autor:**
+
+`GET /api/books?q=Herbert`
+
+Resultado esperado: Dune.
+
+**Buscar ignorando acentos:**
+
+`GET /api/books?q=anos`
+
+Resultado esperado: Cien años de soledad.
+
+**Buscar por género:**
+
+`GET /api/books?q=superheroes`
+
+Resultado esperado: Watchmen.
+
+**Combinar búsqueda, formato y estatus:**
+
+`GET /api/books?q=One&format=MANGA&status=ONGOING`
+
+Resultado esperado: One Piece.
+
+**Búsqueda sin coincidencias:**
+
+`GET /api/books?q=zzzinexistente`
+
+Respuesta:
+
+```json
+[]
+```
+
+### Implementación actual
+
+La búsqueda utiliza las once obras de demostración almacenadas en memoria.
+
+El controlador `BookController` recibe los parámetros HTTP y delega la búsqueda al servicio `BookCatalog`.
+
+El servicio normaliza el texto mediante `java.text.Normalizer` y aplica los filtros combinados sobre las obras.
+
+No se utiliza todavía una base de datos ni se consultan proveedores externos.
+
+La búsqueda del backend fue ampliada con diez pruebas automatizadas nuevas: cinco del servicio y cinco de la API REST.
+
+**Validación local del 22 de octubre de 2026:**
+
+- 32 pruebas ejecutadas.
+- 0 fallos.
+- 0 errores.
+- 0 pruebas omitidas.
+- Resultado: `BUILD SUCCESS`.
+
+Esta validación corresponde a la rama local de desarrollo. No implica que los cambios estén integrados en `main` ni que las interacciones de búsqueda del frontend estén terminadas.
 
 ## GET /api/books/{id}
 
@@ -78,13 +170,22 @@ Responde `{"status": "ok"}` cuando la aplicación está arriba.
 ```bash
 curl http://localhost:8080/api/books
 curl "http://localhost:8080/api/books?format=MANGA&status=ONGOING"
+curl "http://localhost:8080/api/books?q=Dune"
+curl "http://localhost:8080/api/books?q=Herbert"
+curl "http://localhost:8080/api/books?q=anos"
+curl "http://localhost:8080/api/books?q=One&format=MANGA&status=ONGOING"
+curl "http://localhost:8080/api/books?q=zzzinexistente"
 curl http://localhost:8080/api/books/3
 curl http://localhost:8080/api/health
 ```
 
+En Windows PowerShell también se puede utilizar `curl.exe`.
+
 ## Pendiente
 
-- Búsqueda por texto en el servidor (RF03 del [PRD](PRD))
-- Paginación
-- Registro, inicio de sesión y valoraciones (RF01, RF02, RF07)
-- Endpoint de recomendaciones (RF09)
+- Conectar la búsqueda de la interfaz web con el parámetro `q` del backend y completar la apertura del detalle desde las tarjetas (issue #7).
+- Validar el flujo completo de búsqueda y detalle desde el navegador (issue #9).
+- Paginación.
+- Registro, inicio de sesión y valoraciones (RF01, RF02, RF07).
+- Endpoint de recomendaciones (RF09).
+- Persistencia e integración de fuentes externas según las tareas correspondientes.
