@@ -1,3 +1,4 @@
+
 package mx.losmergeados.recomendador.book;
 
 import org.junit.jupiter.api.Test;
@@ -22,8 +23,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Pruebas de la capa web del catálogo de obras.
  *
- * <p>Usa {@code @WebMvcTest} para cargar solo el contexto web (más el
- * catálogo en memoria), manteniendo las pruebas rápidas.
+ * Usa @WebMvcTest para cargar solo el contexto web
+ * junto con el catálogo en memoria.
  */
 @WebMvcTest(BookController.class)
 @Import(BookCatalog.class)
@@ -43,17 +44,21 @@ class BookControllerTest {
     @Test
     void listAll_debeRetornarJson() throws Exception {
         mockMvc.perform(get("/api/books"))
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+                .andExpect(content().contentTypeCompatibleWith(
+                        MediaType.APPLICATION_JSON));
     }
 
     @Test
     void listAll_debeRetornarAlMenosUnElemento() throws Exception {
         mockMvc.perform(get("/api/books"))
-                .andExpect(jsonPath("$.length()").value(greaterThan(0)));
+                .andExpect(jsonPath("$.length()")
+                        .value(greaterThan(0)));
     }
 
     @Test
-    void listAll_primerElementoTieneLosCamposDelModelo() throws Exception {
+    void listAll_primerElementoTieneLosCamposDelModelo()
+            throws Exception {
+
         mockMvc.perform(get("/api/books"))
                 .andExpect(jsonPath("$[0].id").isNumber())
                 .andExpect(jsonPath("$[0].title").isString())
@@ -64,36 +69,51 @@ class BookControllerTest {
     }
 
     @Test
-    void listAll_todosTienenEstatusDePublicacionValido() throws Exception {
+    void listAll_todosTienenEstatusDePublicacionValido()
+            throws Exception {
+
         mockMvc.perform(get("/api/books"))
                 .andExpect(jsonPath("$[*].status").value(
-                        everyItem(in(List.of("ONGOING", "COMPLETED", "HIATUS", "CANCELLED")))));
+                        everyItem(in(List.of(
+                                "ONGOING",
+                                "COMPLETED",
+                                "HIATUS",
+                                "CANCELLED"
+                        )))));
     }
 
     @Test
     void filtrarPorFormato() throws Exception {
-        mockMvc.perform(get("/api/books").param("format", "COMIC"))
+        mockMvc.perform(get("/api/books")
+                        .param("format", "COMIC"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].title").value(is(List.of("Watchmen", "Saga"))));
+                .andExpect(jsonPath("$[*].title")
+                        .value(is(List.of("Watchmen", "Saga"))));
     }
 
     @Test
     void filtrarPorEstatus() throws Exception {
-        mockMvc.perform(get("/api/books").param("status", "HIATUS"))
+        mockMvc.perform(get("/api/books")
+                        .param("status", "HIATUS"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].title").value(is(List.of("Saga"))));
+                .andExpect(jsonPath("$[*].title")
+                        .value(is(List.of("Saga"))));
     }
 
     @Test
-    void filtroSinResultados_devuelveListaVacia() throws Exception {
-        mockMvc.perform(get("/api/books").param("status", "CANCELLED"))
+    void filtroSinResultados_devuelveListaVacia()
+            throws Exception {
+
+        mockMvc.perform(get("/api/books")
+                        .param("status", "CANCELLED"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
     }
 
     @Test
     void formatoInvalido_devuelve400() throws Exception {
-        mockMvc.perform(get("/api/books").param("format", "REVISTA"))
+        mockMvc.perform(get("/api/books")
+                        .param("format", "REVISTA"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -108,10 +128,13 @@ class BookControllerTest {
     }
 
     @Test
-    void obtenerObraInexistente_devuelve404() throws Exception {
+    void obtenerObraInexistente_devuelve404()
+            throws Exception {
+
         mockMvc.perform(get("/api/books/999"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.detail").value("Obra no encontrada"));
+                .andExpect(jsonPath("$.detail")
+                        .value("Obra no encontrada"));
     }
 
     @Test
@@ -123,15 +146,70 @@ class BookControllerTest {
     /* ---------- Vista web ---------- */
 
     @Test
-    void vistaWeb_debeServirseComoHtml() throws Exception {
+    void vistaWeb_debeServirseComoHtml()
+            throws Exception {
+
         mockMvc.perform(get("/index.html"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML));
+                .andExpect(content().contentTypeCompatibleWith(
+                        MediaType.TEXT_HTML));
     }
 
     @Test
-    void vistaWeb_laRaizRedirigeAlIndex() throws Exception {
+    void vistaWeb_laRaizRedirigeAlIndex()
+            throws Exception {
+
         mockMvc.perform(get("/"))
                 .andExpect(forwardedUrl("index.html"));
+    }
+
+    /* ---------- Nuevas pruebas: búsqueda REST ---------- */
+
+    @Test
+    void buscarPorTituloDesdeAPI() throws Exception {
+        mockMvc.perform(get("/api/books")
+                        .param("q", "Dune"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("Dune"))
+                .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    void buscarPorAutorDesdeAPI() throws Exception {
+        mockMvc.perform(get("/api/books")
+                        .param("q", "Herbert"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("Dune"))
+                .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    void buscarIgnorandoAcentos() throws Exception {
+        mockMvc.perform(get("/api/books")
+                        .param("q", "anos"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title")
+                        .value("Cien años de soledad"))
+                .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    void buscarConFiltrosCombinados() throws Exception {
+        mockMvc.perform(get("/api/books")
+                        .param("q", "One")
+                        .param("format", "MANGA")
+                        .param("status", "ONGOING"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title")
+                        .value("One Piece"))
+                .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    void buscarSinResultadosDesdeAPI() throws Exception {
+        mockMvc.perform(get("/api/books")
+                        .param("q", "zzzinexistente"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
     }
 }

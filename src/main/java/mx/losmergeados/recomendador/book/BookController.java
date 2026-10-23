@@ -1,3 +1,4 @@
+
 package mx.losmergeados.recomendador.book;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,8 +17,8 @@ import java.util.List;
 /**
  * API REST del catálogo de obras.
  *
- * <p>El controlador no guarda datos: delega en {@link BookCatalog}. Así, al
- * conectar la base de datos solo cambia el servicio.
+ * El controlador no guarda datos: delega en BookCatalog.
+ * Permite listar, buscar, filtrar y consultar detalles.
  */
 @RestController
 @RequestMapping("/api/books")
@@ -31,28 +32,56 @@ public class BookController {
     }
 
     /**
-     * Lista las obras, con filtros opcionales por formato y estatus.
-     * Un valor inválido (por ejemplo {@code ?format=REVISTA}) responde {@code 400}.
+     * Lista y busca obras del catálogo.
+     *
+     * Permite combinar:
+     * - Búsqueda textual por título, autor o género.
+     * - Filtro por formato.
+     * - Filtro por estatus de publicación.
+     *
+     * Los parámetros son opcionales.
+     * Los formatos o estatus inválidos responden 400.
      */
     @GetMapping
-    @Operation(summary = "Lista el catálogo de obras",
-            description = "Sin parámetros devuelve todo el catálogo. Los filtros se pueden combinar.")
+    @Operation(
+        summary = "Lista y busca obras del catálogo",
+        description = "Permite buscar por título, autor o género y combinar filtros de formato y estatus."
+    )
     public List<Book> list(
+
             @Parameter(description = "Formato: BOOK, COMIC o MANGA")
-            @RequestParam(required = false) Format format,
+            @RequestParam(required = false)
+            Format format,
+
             @Parameter(description = "Estatus: ONGOING, COMPLETED, HIATUS o CANCELLED")
-            @RequestParam(required = false) PublicationStatus status) {
-        return catalog.list(format, status);
+            @RequestParam(required = false)
+            PublicationStatus status,
+
+            @Parameter(description = "Texto de búsqueda por título, autor o género")
+            @RequestParam(name = "q", required = false)
+            String query) {
+
+        return catalog.list(format, status, query);
     }
 
     /**
-     * Devuelve el detalle de una obra, o {@code 404} si no existe.
-     * Un id no numérico responde {@code 400}.
+     * Consulta el detalle de una obra por ID.
+     *
+     * Respuestas:
+     * 200 - Obra encontrada.
+     * 404 - Obra inexistente.
+     * 400 - Identificador no numérico.
      */
     @GetMapping("/{id}")
     @Operation(summary = "Detalle de una obra")
     public Book get(@PathVariable long id) {
+
         return catalog.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Obra no encontrada"));
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Obra no encontrada"
+                        )
+                );
     }
 }
