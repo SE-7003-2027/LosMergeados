@@ -74,9 +74,43 @@ Si la prueba técnica no resulta viable, se podrá utilizar temporalmente Google
 
 Open Library se considera una fuente complementaria para libros y ediciones.
 
-No se deberá utilizar como fuente para realizar consultas masivas. Se propone utilizarla únicamente cuando sea necesario complementar información, empleando caché y respetando los límites establecidos por el servicio.
+Inicialmente se propuso utilizarla para complementar información del catálogo mediante consultas de bajo volumen, respetando los límites del servicio e identificando correctamente al cliente.
 
-También se deberá identificar correctamente al cliente mediante un User-Agent apropiado y, cuando corresponda, información de contacto.
+Estado de implementación
+
+Se implementó una primera integración técnica con Open Library en el backend de Spring Boot. La integración permite buscar obras por título mediante el endpoint /api/books/external.
+
+El cliente OpenLibraryClient consulta el endpoint de búsqueda de Open Library y transforma los resultados a objetos OpenLibraryBook, que contienen los siguientes datos cuando están disponibles:
+
+Identificador de la obra en Open Library.
+
+Título.
+
+Autores.
+
+Temas asociados.
+
+Año de primera publicación.
+
+URL de portada.
+
+URL de la obra en Open Library.
+
+La integración contempla resultados sin coincidencias y campos opcionales ausentes. Los errores de comunicación con el servicio externo se manejan mediante una excepción específica y una respuesta HTTP 502 Bad Gateway.
+
+Los resultados externos se mantienen separados del catálogo interno. Esta primera integración no incorpora automáticamente las obras externas al catálogo ni implementa persistencia, caché o deduplicación.
+
+Pendientes
+
+Revisar e implementar las medidas de identificación del cliente requeridas por Open Library, incluido un User-Agent apropiado.
+
+Evaluar la incorporación de caché y mecanismos de control de solicitudes.
+
+Verificar los límites y las condiciones de uso vigentes.
+
+Evaluar cómo aprovechar los metadatos externos en el catálogo normalizado del proyecto.
+
+Esta integración representa una primera prueba técnica del acceso a Open Library, no la implementación definitiva de todas las funcionalidades propuestas para las fuentes externas.
 
 ### 3.5 Jikan
 
@@ -110,9 +144,11 @@ Para la primera etapa del proyecto se propone trabajar con:
 
 ### Segunda iteración
 
-* **Open Library:** complemento para libros y ediciones.
-* Utilización de caché para evitar consultas repetitivas.
-* Consultas de bajo volumen y respetando los límites del servicio.
+* **Open Library:** complemento para libros y ediciones. Se cuenta con una primera integración técnica en el backend para buscar obras por título.
+* Incorporación de caché para evitar consultas repetitivas.
+* Implementación o configuración de mecanismos de control de solicitudes.
+* Identificación adecuada del cliente y revisión de los límites y condiciones de uso del servicio.
+* Evaluación de la integración de los metadatos externos con el modelo de datos normalizado.
 
 ### Alternativas
 
