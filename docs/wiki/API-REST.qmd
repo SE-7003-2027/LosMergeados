@@ -12,6 +12,7 @@ La documentación interactiva (generada automáticamente con OpenAPI) está en <
 | Método | Ruta | Descripción |
 |---|---|---|
 | GET | `/api/books` | Lista y busca obras, con filtros opcionales `format`, `status` y `q` |
+| GET | `/api/books/external?title={title}` | Busca obras en Open Library por título |
 | GET | `/api/books/{id}` | Detalle de una obra |
 | GET | `/api/health` | Estado del servicio |
 | GET | `/v3/api-docs` | Especificación OpenAPI en JSON |
@@ -19,6 +20,94 @@ La documentación interactiva (generada automáticamente con OpenAPI) está en <
 ## GET /api/books
 
 Devuelve las obras del catálogo. Sin parámetros devuelve todas; la búsqueda textual y los filtros se pueden combinar.
+
+GET /api/books/external
+
+Busca obras en el catálogo externo de Open Library por título. Este endpoint permite consultar información externa sin modificar ni mezclar los resultados con el catálogo interno de la aplicación.
+
+Parámetros de consulta
+
+Parámetro
+
+Descripción
+
+Ejemplo
+
+title
+
+Título de la obra que se desea buscar
+
+/api/books/external?title=The%20Hobbit
+
+El parámetro title es obligatorio. Si se proporciona un título vacío o compuesto únicamente por espacios, el servicio devuelve una lista vacía.
+
+Respuesta exitosa — 200 OK, application/json
+
+Devuelve una lista de obras obtenidas de Open Library. Cada elemento puede incluir los siguientes campos:
+
+Campo
+
+Descripción
+
+sourceId
+
+Identificador de la obra en Open Library
+
+title
+
+Título de la obra
+
+authors
+
+Lista de autores
+
+subjects
+
+Lista de temas asociados
+
+firstPublishYear
+
+Año de primera publicación, si está disponible
+
+coverUrl
+
+URL de la portada, si está disponible
+
+sourceUrl
+
+URL de la obra en Open Library
+
+Los campos opcionales pueden tener valor null cuando la fuente no proporciona la información. Las listas de autores y temas se representan como listas vacías cuando no hay datos disponibles.
+
+Si no existen resultados, la respuesta es 200 OK con una lista vacía ([]).
+
+Si se omite el parámetro obligatorio title, la API responde 400 Bad Request.
+
+Si ocurre un error al consultar Open Library, la API responde 502 Bad Gateway, utilizando el formato Problem Details.
+
+Ejemplos de consulta
+
+Buscar una obra:
+
+GET /api/books/external?title=The%20Hobbit
+
+Búsqueda sin resultados:
+
+GET /api/books/external?title=zzzinexistente
+
+Respuesta:
+
+[]
+
+Implementación actual
+
+El controlador BookController recibe la solicitud y delega la búsqueda a OpenLibraryClient. El cliente consulta el endpoint /search.json de Open Library y procesa un máximo de diez resultados.
+
+Las obras externas se representan mediante OpenLibraryBook, un DTO que conserva los identificadores de la fuente externa. Estos identificadores no se confunden con los identificadores del catálogo interno.
+
+Los errores de comunicación con Open Library se convierten en OpenLibraryException. GlobalExceptionHandler los transforma en respuestas HTTP 502 Bad Gateway, sin exponer detalles internos del servidor.
+
+La consulta externa no agrega, modifica ni elimina obras del catálogo interno.
 
 ### Parámetros de consulta
 
@@ -121,13 +210,13 @@ El controlador `BookController` recibe los parámetros HTTP y delega la búsqued
 
 El servicio normaliza el texto mediante `java.text.Normalizer` y aplica los filtros combinados sobre las obras.
 
-No se utiliza todavía una base de datos ni se consultan proveedores externos.
+El catálogo interno continúa utilizando once obras de demostración almacenadas en memoria. La consulta de Open Library está disponible mediante el endpoint independiente `/api/books/external`; sus resultados no se incorporan automáticamente al catálogo interno.
 
 La búsqueda del backend fue ampliada con diez pruebas automatizadas nuevas: cinco del servicio y cinco de la API REST.
 
-**Validación local del 22 de octubre de 2026:**
+**Validación local del 26 de octubre de 2026:**
 
-- 32 pruebas ejecutadas.
+- 42 pruebas ejecutadas.
 - 0 fallos.
 - 0 errores.
 - 0 pruebas omitidas.
@@ -175,6 +264,8 @@ curl "http://localhost:8080/api/books?q=Herbert"
 curl "http://localhost:8080/api/books?q=anos"
 curl "http://localhost:8080/api/books?q=One&format=MANGA&status=ONGOING"
 curl "http://localhost:8080/api/books?q=zzzinexistente"
+curl "http://localhost:8080/api/books/external?title=The%20Hobbit"
+curl "http://localhost:8080/api/books/external?title=zzzinexistente"
 curl http://localhost:8080/api/books/3
 curl http://localhost:8080/api/health
 ```

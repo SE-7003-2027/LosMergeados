@@ -1,24 +1,29 @@
 
 package mx.losmergeados.recomendador.book;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-
 import java.util.List;
 
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
+import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import mx.losmergeados.recomendador.book.source.OpenLibraryBook;
+import mx.losmergeados.recomendador.book.source.OpenLibraryException;
 
 /**
  * Pruebas de la capa web del catálogo de obras.
@@ -212,4 +217,82 @@ class BookControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
     }
+
+
+        /* ---------- GET /api/books/external ---------- */
+
+        @Test
+        void buscarEnOpenLibrary_debeRetornarResultados() throws Exception {
+        OpenLibraryBook book = new OpenLibraryBook(
+                "/works/OL123W",
+                "The Hobbit",
+                List.of("J. R. R. Tolkien"),
+                List.of("Fantasy", "Adventure"),
+                1937,
+                "https://covers.openlibrary.org/b/id/123-M.jpg",
+                "https://openlibrary.org/works/OL123W"
+        );
+
+        when(openLibraryClient.searchByTitle("The Hobbit"))
+                .thenReturn(List.of(book));
+
+        mockMvc.perform(get("/api/books/external")
+                        .param("title", "The Hobbit"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(
+                        MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$[0].sourceId")
+                        .value("/works/OL123W"))
+                .andExpect(jsonPath("$[0].title")
+                        .value("The Hobbit"))
+                .andExpect(jsonPath("$[0].authors[0]")
+                        .value("J. R. R. Tolkien"))
+                .andExpect(jsonPath("$[0].firstPublishYear")
+                        .value(1937));
+
+        verify(openLibraryClient).searchByTitle("The Hobbit");
+        }
+
+        @Test
+        void buscarEnOpenLibrary_sinResultados_debeRetornarListaVacia()
+                throws Exception {
+
+        when(openLibraryClient.searchByTitle("Libro inexistente"))
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/api/books/external")
+                        .param("title", "Libro inexistente"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+        }
+
+        @Test
+        void buscarEnOpenLibrary_sinTitulo_debeRetornar400()
+                throws Exception {
+
+        mockMvc.perform(get("/api/books/external"))
+                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void buscarEnOpenLibrary_siFallaElServicio_devuelve502()
+                throws Exception {
+
+        when(openLibraryClient.searchByTitle("The Hobbit"))
+                .thenThrow(new OpenLibraryException(
+                        "No se pudo consultar Open Library.",
+                        new RuntimeException("Error de conexión")
+                ));
+
+        mockMvc.perform(get("/api/books/external")
+                        .param("title", "The Hobbit"))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.title")
+                        .value("Error en el servicio externo"))
+                .andExpect(jsonPath("$.detail")
+                        .value("No fue posible consultar Open Library."));
+        }
+
+    @MockBean
+    private mx.losmergeados.recomendador.book.source.OpenLibraryClient openLibraryClient;
 }
