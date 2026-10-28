@@ -10,12 +10,22 @@ No es la interfaz final: su objetivo es que el equipo pueda **ver los datos de p
 
 | Control | Función |
 |---|---|
-| **Buscar** | Filtra por título, autor o género. Ignora mayúsculas y acentos |
+| **Buscar** | Busca por título, autor o género en el backend (`GET /api/books?q=`). Ignora mayúsculas y acentos y espera 250 ms después del último teclazo antes de consultar |
 | **Formato** | Muestra todos, o solo libros, cómics o manga |
 | **Estatus** | Filtra por estatus de publicación |
 | **Agrupar por** | Organiza las tarjetas por género (por defecto), autor, estatus, o sin agrupar |
 
 Cada tarjeta muestra título, autor, género y dos etiquetas de color: formato y estatus. El borde superior de la tarjeta también cambia según el formato.
+
+## Detalle de una obra
+
+Al hacer clic en una tarjeta (o enfocarla con el teclado y presionar Enter) se abre una ventana con el detalle de la obra. Los datos **no se copian de la tarjeta**: se consultan de nuevo en `GET /api/books/{id}` y se muestra lo que responde el backend (título, autor, género, formato, estatus e identificador).
+
+- La URL cambia a `#obra/{id}`, así que el enlace se puede compartir o recargar y abre directamente el detalle.
+- Se cierra con el botón ×, con Esc, con un clic fuera de la ventana o con el botón "atrás" del navegador.
+- Mientras carga se muestran skeletons.
+- Si la obra no existe (`404`) o el identificador no es válido (`400`), se muestra "Obra no encontrada".
+- Si la API falla o no responde, se muestra un mensaje de error con un botón **Reintentar**.
 
 ## Skeletons de carga
 
@@ -30,7 +40,7 @@ Si el usuario tiene activada la opción de *reducir movimiento* en su sistema, e
 Corresponden al requisito RF10 del [PRD](PRD) (estados diferenciados de carga, sin resultados y error):
 
 - **Cargando:** skeletons.
-- **Sin resultados:** aparece un mensaje cuando los filtros no coinciden con ninguna obra.
+- **Sin resultados:** aparece un mensaje cuando la búsqueda o los filtros no coinciden con ninguna obra; si hay texto de búsqueda, el mensaje lo menciona.
 - **Error:** si la API no responde, se muestra un mensaje con un botón **Reintentar**.
 
 ## Diseño
@@ -45,14 +55,14 @@ Corresponden al requisito RF10 del [PRD](PRD) (estados diferenciados de carga, s
 
 ```text
 src/main/resources/static/
-├── index.html      Estructura de la página
+├── index.html      Estructura de la página y ventana de detalle
 ├── css/styles.css  Estilos, paleta y skeletons
-└── js/app.js       Carga de datos, filtros, agrupación y render
+└── js/app.js       Carga de datos, búsqueda, filtros, agrupación, detalle y render
 ```
 
 Los datos se insertan en la página con `textContent`, no con `innerHTML`, para evitar inyección de HTML cuando el catálogo venga de una base de datos o de fuentes externas.
 
 ## Limitaciones actuales
 
-- El filtrado y la agrupación se hacen en el navegador sobre el catálogo completo. Con pocas obras funciona bien; con un catálogo grande conviene usar los filtros de la API (`?format=` y `?status=`, ver [API REST](API-REST)) y agregar paginación.
-- No hay ficha de detalle, perfil de usuario ni recomendaciones personalizadas todavía: la vista solo muestra el catálogo.
+- La búsqueda y los filtros se resuelven en el backend (`?q=`, `?format=` y `?status=`, ver [API REST](API-REST)); solo la agrupación se hace en el navegador. Con un catálogo grande hará falta paginación.
+- No hay perfil de usuario, valoraciones ni recomendaciones personalizadas todavía.

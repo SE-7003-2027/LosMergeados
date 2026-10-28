@@ -3,6 +3,7 @@ package mx.losmergeados.recomendador.book;
 
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.in;
@@ -133,6 +134,25 @@ class BookControllerTest {
     }
 
     @Test
+    void obtenerObraExistente_incluyeLosCamposDelDetalle()
+            throws Exception {
+
+        mockMvc.perform(get("/api/books/9"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(
+                        MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(9))
+                .andExpect(jsonPath("$.title")
+                        .value("Cien años de soledad"))
+                .andExpect(jsonPath("$.author")
+                        .value("Gabriel García Márquez"))
+                .andExpect(jsonPath("$.genre")
+                        .value("Realismo mágico"))
+                .andExpect(jsonPath("$.format").value("BOOK"))
+                .andExpect(jsonPath("$.status").value("COMPLETED"));
+    }
+
+    @Test
     void obtenerObraInexistente_devuelve404()
             throws Exception {
 
@@ -158,6 +178,25 @@ class BookControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(
                         MediaType.TEXT_HTML));
+    }
+
+    @Test
+    void vistaWeb_incluyeElDialogoDeDetalle()
+            throws Exception {
+
+        mockMvc.perform(get("/index.html"))
+                .andExpect(content().string(
+                        containsString("<dialog id=\"detail\"")));
+    }
+
+    @Test
+    void vistaWeb_scriptConsultaElDetalleEnElBackend()
+            throws Exception {
+
+        mockMvc.perform(get("/js/app.js"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(
+                        containsString("fetch(`${API_URL}/${encodeURIComponent(id)}`")));
     }
 
     @Test
@@ -208,6 +247,36 @@ class BookControllerTest {
                 .andExpect(jsonPath("$[0].title")
                         .value("One Piece"))
                 .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    void buscarPorGeneroDesdeAPI() throws Exception {
+        mockMvc.perform(get("/api/books")
+                        .param("q", "superheroes"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("Watchmen"))
+                .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    void buscarSoloEspacios_devuelveTodoElCatalogo()
+            throws Exception {
+
+        mockMvc.perform(get("/api/books")
+                        .param("q", "   "))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(11));
+    }
+
+    @Test
+    void cadaResultadoDeBusquedaAbreSuDetalle() throws Exception {
+        mockMvc.perform(get("/api/books")
+                        .param("q", "Akira"))
+                .andExpect(jsonPath("$[0].id").value(2));
+
+        mockMvc.perform(get("/api/books/2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Akira"));
     }
 
     @Test

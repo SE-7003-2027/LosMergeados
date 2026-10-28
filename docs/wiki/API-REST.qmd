@@ -234,6 +234,8 @@ Devuelve una obra.
 | No existe | `404 Not Found` con `"detail": "Obra no encontrada"` |
 | El id no es numérico (`/api/books/abc`) | `400 Bad Request` |
 
+La vista web usa este endpoint para abrir el detalle al hacer clic en una tarjeta (ver [Vista web](Vista-web)).
+
 ## Formato de los errores
 
 Los errores siguen el estándar *Problem Details* (RFC 9457), con tipo de contenido `application/problem+json`:
@@ -274,7 +276,6 @@ En Windows PowerShell también se puede utilizar `curl.exe`.
 
 ## Pendiente
 
-- Conectar la búsqueda de la interfaz web con el parámetro `q` del backend y completar la apertura del detalle desde las tarjetas (issue #7).
 - Validar el flujo completo de búsqueda y detalle desde el navegador (issue #9).
 - Paginación.
 - Registro, inicio de sesión y valoraciones (RF01, RF02, RF07).
