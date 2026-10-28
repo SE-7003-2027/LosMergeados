@@ -23,6 +23,10 @@ En esta Wiki se organizará la información relacionada con:
 
 La documentación se actualizará conforme avance el proyecto y se validen las decisiones del equipo.
 
+### Consolidación de los proyectos anteriores
+
+El [inventario y plan de consolidación](Consolidacion-de-avances) registra los avances de Git-Wreckers y Equipo 7, la integración existente en `Sprint4` y los pendientes asociados a la issue #3. Distingue el código presente en esa rama de lo que ya se incorporó a `main`.
+
 ## Repositorio
 
 El código fuente y los archivos de trabajo se encuentran en el repositorio de GitHub de LosMergeados.
