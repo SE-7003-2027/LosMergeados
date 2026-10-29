@@ -27,6 +27,10 @@ La documentación se actualizará conforme avance el proyecto y se validen las d
 
 La [evaluación de fuentes de información](Fuentes-de-datos-y-APIs) compara Google Books, AniList, Comic Vine y Open Library, con consultas de muestra, evidencia y una recomendación por tipo de obra para la issue #5.
 
+### Consolidación de los proyectos anteriores
+
+El [inventario y plan de consolidación](Consolidacion-de-avances) registra los avances de Git-Wreckers y Equipo 7, la integración existente en `Sprint4` y los pendientes asociados a la issue #3. Distingue el código presente en esa rama de lo que ya se incorporó a `main`.
+
 ## Repositorio
 
 El código fuente y los archivos de trabajo se encuentran en el repositorio de GitHub de LosMergeados.
