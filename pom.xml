@@ -26,6 +26,12 @@
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- Spring Web: expone la API REST y sirve la vista web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

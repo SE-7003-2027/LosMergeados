@@ -9,6 +9,14 @@
     const MIN_SKELETON_MS = 600;
     const SKELETON_CARDS = 6;
 
+    // Espera entre teclazos antes de consultar al backend, para no lanzar
+    // una peticion por cada letra escrita.
+    const SEARCH_DEBOUNCE_MS = 250;
+
+    // Ruta del detalle en el hash de la URL. Permite compartir el
+    // enlace y cerrar el detalle con el boton "atras" del navegador.
+    const DETAIL_HASH = /^#obra\/(.+)$/;
+
     const FORMATS = {
         BOOK: 'Libro',
         COMIC: 'Cómic',
@@ -36,7 +44,10 @@
         search: document.getElementById('search'),
         formatChips: document.getElementById('format-chips'),
         status: document.getElementById('status'),
-        groupBy: document.getElementById('group-by')
+        groupBy: document.getElementById('group-by'),
+        detail: document.getElementById('detail'),
+        detailBody: document.getElementById('detail-body'),
+        detailClose: document.getElementById('detail-close')
     };
 
     /* ---------- Utilidades de DOM (textContent: nunca innerHTML con datos) ---------- */
@@ -81,28 +92,35 @@
 
     /* ---------- Render ---------- */
 
-    function bookCard(book) {
-        return el('article', { className: 'card', attrs: { 'data-format': book.format } }, [
-            el('h3', { className: 'card-title', text: book.title }),
-            el('p', { className: 'card-author', text: book.author }),
-            el('p', { className: 'card-genre', text: book.genre }),
-            el('div', { className: 'badges' }, [
-                el('span', {
-                    className: 'badge',
-                    text: FORMATS[book.format] ?? book.format,
-                    attrs: { 'data-format': book.format }
-                }),
-                el('span', {
-                    className: 'badge',
-                    text: STATUSES[book.status] ?? book.status,
-                    attrs: { 'data-status': book.status }
-                })
-            ])
+    function badges(book) {
+        return el('div', { className: 'badges' }, [
+            el('span', {
+                className: 'badge',
+                text: FORMATS[book.format] ?? book.format,
+                attrs: { 'data-format': book.format }
+            }),
+            el('span', {
+                className: 'badge',
+                text: STATUSES[book.status] ?? book.status,
+                attrs: { 'data-status': book.status }
+            })
         ]);
     }
 
-    function filteredBooks() {
-        return state.books;
+    function bookCard(book) {
+        // El titulo es un enlace al detalle; con CSS su area cubre toda la tarjeta.
+        return el('article', { className: 'card', attrs: { 'data-format': book.format } }, [
+            el('h3', { className: 'card-title' }, [
+                el('a', {
+                    className: 'card-link',
+                    text: book.title,
+                    attrs: { href: `#obra/${book.id}` }
+                })
+            ]),
+            el('p', { className: 'card-author', text: book.author }),
+            el('p', { className: 'card-genre', text: book.genre }),
+            badges(book)
+        ]);
     }
 
     function groupLabel(book) {
@@ -123,15 +141,21 @@
     }
 
     function render() {
-        const books = filteredBooks();
+        const books = state.books;
+        const query = state.search.trim();
         els.content.setAttribute('aria-busy', 'false');
         els.summary.textContent =
-            `${books.length} de ${state.books.length} obras`;
+            `${books.length} ${books.length === 1 ? 'obra' : 'obras'}` +
+            (query ? ` para «${query}»` : '');
 
         if (books.length === 0) {
             els.content.replaceChildren(el('div', { className: 'state' }, [
                 el('h2', { text: 'Sin resultados' }),
-                el('p', { text: 'Prueba con otra búsqueda o quita algún filtro.' })
+                el('p', {
+                    text: query
+                        ? `No encontramos obras que coincidan con «${query}». Prueba con otro título, autor o género, o quita algún filtro.`
+                        : 'Ninguna obra coincide con los filtros. Prueba quitando alguno.'
+                })
             ]));
             return;
         }
@@ -159,6 +183,128 @@
             el('p', { text: 'Revisa que la aplicación siga corriendo e inténtalo de nuevo.' }),
             retry
         ]));
+    }
+
+    /* ---------- Detalle de una obra ---------- */
+
+    let latestDetailRequest = 0;
+
+    function showDetailSkeleton() {
+        els.detailBody.setAttribute('aria-busy', 'true');
+        els.detailBody.replaceChildren(el('div', { attrs: { 'aria-hidden': 'true' } }, [
+            el('div', { className: 'skeleton sk-title' }),
+            el('div', { className: 'skeleton sk-line' }),
+            el('div', { className: 'skeleton sk-line-s' }),
+            el('div', { className: 'badges' }, [
+                el('div', { className: 'skeleton sk-badge' }),
+                el('div', { className: 'skeleton sk-badge' })
+            ])
+        ]));
+    }
+
+    function renderDetail(book) {
+        const row = (label, value) => [el('dt', { text: label }), el('dd', { text: value })];
+
+        els.detail.dataset.format = book.format;
+        els.detailBody.setAttribute('aria-busy', 'false');
+        els.detailBody.replaceChildren(
+            el('h2', { className: 'detail-title', text: book.title }),
+            el('p', { className: 'card-author', text: book.author }),
+            badges(book),
+            el('dl', { className: 'detail-data' }, [
+                ...row('Autor', book.author),
+                ...row('Género', book.genre),
+                ...row('Formato', FORMATS[book.format] ?? book.format),
+                ...row('Estatus de publicación', STATUSES[book.status] ?? book.status),
+                ...row('Identificador', String(book.id))
+            ])
+        );
+    }
+
+    function renderDetailState(title, message, retryId) {
+        delete els.detail.dataset.format;
+        els.detailBody.setAttribute('aria-busy', 'false');
+
+        const children = [el('h2', { text: title }), el('p', { text: message })];
+        if (retryId !== undefined) {
+            const retry = el('button', { className: 'btn', text: 'Reintentar', attrs: { type: 'button' } });
+            retry.addEventListener('click', () => loadDetail(retryId));
+            children.push(retry);
+        }
+        els.detailBody.replaceChildren(el('div', { className: 'state detail-state' }, children));
+    }
+
+    async function loadDetail(id) {
+        const requestId = ++latestDetailRequest;
+
+        delete els.detail.dataset.format;
+        showDetailSkeleton();
+        if (!els.detail.open) els.detail.showModal();
+
+        try {
+            const [response] = await Promise.all([
+                fetch(`${API_URL}/${encodeURIComponent(id)}`, {
+                    headers: { Accept: 'application/json' }
+                }),
+                new Promise(resolve => setTimeout(resolve, MIN_SKELETON_MS))
+            ]);
+
+            if (requestId !== latestDetailRequest) return;
+
+            if (response.status === 404 || response.status === 400) {
+                renderDetailState(
+                    'Obra no encontrada',
+                    'La obra que buscas no existe o el enlace no es válido.'
+                );
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            renderDetail(await response.json());
+        } catch (error) {
+            if (requestId !== latestDetailRequest) return;
+
+            console.error('Error al cargar el detalle:', error);
+            renderDetailState(
+                'No pudimos cargar el detalle',
+                'Revisa que la aplicación siga corriendo e inténtalo de nuevo.',
+                id
+            );
+        }
+    }
+
+    // Abre o cierra el detalle segun el hash de la URL.
+    function route() {
+        const match = location.hash.match(DETAIL_HASH);
+
+        if (match) {
+            loadDetail(decodeURIComponent(match[1]));
+        } else if (els.detail.open) {
+            els.detail.close();
+        }
+    }
+
+    function setupDetail() {
+        els.detailClose.addEventListener('click', () => els.detail.close());
+
+        // Clic fuera del contenido (sobre el fondo) cierra el detalle.
+        els.detail.addEventListener('click', event => {
+            if (event.target === els.detail) els.detail.close();
+        });
+
+        // Al cerrar (boton, Esc o fondo) se quita el hash sin agregar
+        // otra entrada al historial.
+        els.detail.addEventListener('close', () => {
+            latestDetailRequest++;
+            if (DETAIL_HASH.test(location.hash)) {
+                history.replaceState(null, '', location.pathname + location.search);
+            }
+        });
+
+        window.addEventListener('hashchange', route);
     }
 
     /* ---------- Controles ---------- */
@@ -189,9 +335,13 @@
             ...Object.entries(STATUSES).map(([value, label]) => el('option', { text: label, attrs: { value } }))
         );
 
+        let searchTimer;
         els.search.addEventListener('input', () => {
-            state.search = els.search.value;
-            load();
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                state.search = els.search.value;
+                load();
+            }, SEARCH_DEBOUNCE_MS);
         });
 
         els.status.addEventListener('change', () => {
@@ -258,5 +408,7 @@
         }
     }
     buildControls();
+    setupDetail();
     load();
+    route();
 })();

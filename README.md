@@ -47,7 +47,8 @@ Se van marcando conforme se completan (prioridades del [PRD](docs/wiki/PRD.qmd))
 - [x] Exploración con filtros y organización por autor, género y estatus (vista web)
 - [x] Detalle de una obra por API
 - [ ] Registro e inicio de sesión
-- [ ] Búsqueda de obras desde el servidor
+- [x] Búsqueda de obras desde el servidor
+- [x] Detalle de una obra desde la vista web
 - [ ] Valoración de obras e historial de valoraciones
 - [ ] Recomendaciones personalizadas basadas en contenido
 - [ ] Información de disponibilidad en México a partir de fuentes externas
@@ -98,7 +99,8 @@ En Windows: `.\mvnw.cmd spring-boot:run`
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/api/books` | Lista el catálogo; filtros opcionales `?format=BOOK\|COMIC\|MANGA` y `?status=ONGOING\|COMPLETED\|HIATUS\|CANCELLED` |
+| GET | `/api/books` | Lista y busca en el catálogo; parámetros opcionales `?q=texto` (título, autor o género), `?format=BOOK\|COMIC\|MANGA` y `?status=ONGOING\|COMPLETED\|HIATUS\|CANCELLED` |
+| GET | `/api/books/external` | Busca obras en Open Library por título (`?title=`) |
 | GET | `/api/books/{id}` | Detalle de una obra (`404` si no existe) |
 | GET | `/api/health` | Estado del servicio |
 

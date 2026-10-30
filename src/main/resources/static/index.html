@@ -49,6 +49,14 @@
         <div id="content" aria-busy="true"></div>
     </main>
 
+    <dialog id="detail" class="detail" aria-labelledby="detail-heading">
+        <div class="detail-header">
+            <span class="field-label" id="detail-heading">Detalle de la obra</span>
+            <button type="button" class="detail-close" id="detail-close" aria-label="Cerrar detalle">×</button>
+        </div>
+        <div id="detail-body" aria-live="polite"></div>
+    </dialog>
+
     <footer class="footer">
         <div class="container">
             <p>Datos de demostración en memoria · La base de datos se conectará en un próximo sprint.</p>
