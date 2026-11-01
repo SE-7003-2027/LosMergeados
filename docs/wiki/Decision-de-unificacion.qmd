@@ -1,0 +1,67 @@
+---
+title: "Decisión de unificación"
+---
+
+**Estado:** Aceptada<br>
+**Fecha:** 2026-10-19<br>
+**Tipo:** Registro de decisión de arquitectura (ADR)
+
+## Contexto
+
+Por indicación de la profesora titular, los equipos se reorganizaron según quiénes estaban trabajando en el proyecto. Los integrantes activos de **Git-Wreckers** y de **Equipo 7** quedaron juntos en **LosMergeados**. Ambos equipos habían elegido el mismo proyecto (recomendador de libros, cómics y manga disponibles en México), pero con tecnologías distintas:
+
+| | Git-Wreckers | Equipo 7 |
+|---|---|---|
+| Backend | Python + FastAPI | Java 21 + Spring Boot 3 |
+| Endpoints | `/health`, `/libros`, `/libros/{id}`, filtro `?tipo=` | `/api/books` |
+| Modelo | id, título, tipo, género, autor, calificación | id, title, author, genre, format, **status** |
+| Frontend | Tarjetas con filtro por tipo (servidor aparte) | Búsqueda, filtros por formato y estatus, agrupación, skeletons, modo oscuro, manejo de errores (servido por Spring Boot) |
+| Pruebas | pytest (8) | JUnit 5 + MockMvc (7) |
+| Documentación | PRD, RFC, arquitectura, 3 SPIKEs, prueba técnica, guía de colaboración, en Quarto | Wiki práctica (instalación, API, modelo, vista, roadmap) y `CONTRIBUTING.md` |
+
+Para no retrasar el proyecto se decidió no empezar de cero, sino combinar lo mejor de cada uno.
+
+## Decisión
+
+1. **Código: se conserva la base de Equipo 7 (Java 21 + Spring Boot 3).** Era la implementación más avanzada (vista web completa y pruebas) y ya contemplaba el estatus de publicación que pide el proyecto.
+2. **Documentación: se parte de la de Git-Wreckers**, actualizada para reflejar el backend en Java. Se complementa con las páginas prácticas de Equipo 7.
+3. **Estructura del repositorio: la de LosMergeados.** La wiki vive en `docs/wiki/*.qmd` y se publica con `scripts/build-wiki.sh`.
+
+## Qué se tomó de cada equipo
+
+### De Equipo 7
+
+- Proyecto Spring Boot + Maven (con wrapper), Java 21.
+- Modelo `Book` con formato y **estatus de publicación**.
+- Vista web completa (`src/main/resources/static`).
+- Pruebas con JUnit 5 + MockMvc.
+- Reglas de `CONTRIBUTING.md` (Conventional Commits en español, tipos de revisión, checklist de Pull Request).
+- Páginas de wiki: Instalación y ejecución, API REST, Modelo de datos, Vista web y Roadmap de sprints.
+
+### De Git-Wreckers
+
+- **Capa de servicio** separada de las rutas (`catalogo.py` → `BookCatalog`): el controlador ya no guarda datos.
+- Endpoints que no existían en Equipo 7: **detalle por id con 404** (`GET /api/books/{id}`), **filtro por tipo** (ahora `?format=` y también `?status=`) y **estado del servicio** (`GET /api/health`).
+- Casos de prueba: filtro por tipo, filtro sin resultados, obra existente, obra inexistente (404) e id inválido.
+- Obras del catálogo de ejemplo que no estaban en Equipo 7: *Cien años de soledad*, *Death Note* y *One Piece* (con su estatus de publicación).
+- La razón principal por la que eligieron FastAPI: **documentación interactiva autogenerada**. Se agregó en Spring Boot con springdoc-openapi (`/swagger-ui.html`).
+- Toda la documentación de requerimientos, diseño e investigación, y la guía de colaboración (fusionada con el `CONTRIBUTING` de Equipo 7).
+
+### De LosMergeados
+
+- README, equipo y descripción del proyecto.
+- Automatización de la wiki con Quarto (`scripts/build-wiki.sh`) y la carpeta `docs/wiki/`.
+
+## Qué no se trasladó
+
+- El código Python de Git-Wreckers (`backend/`, `frontend/`, `demo/` y el spike Flask vs FastAPI). Su funcionalidad ya está cubierta en Spring Boot y sigue disponible en el repositorio original. La prueba técnica se conserva documentada como antecedente.
+- El campo `calificacion` del modelo de Git-Wreckers: era un valor fijo de ejemplo. Las valoraciones reales por usuario (RF07 del PRD) se implementarán como una entidad propia.
+- La carpeta `docs/wiki/README.md` de Equipo 7, que explicaba cómo publicar la wiki a mano; la sustituye `scripts/build-wiki.sh`.
+
+## Consecuencias
+
+- El paquete Java cambió de `mx.equipo7.recomendador` a `mx.losmergeados.recomendador`.
+- `format` y `status` pasaron de `String` a `enum` (ya estaba planeado para el Sprint 3 de Equipo 7). Un valor inválido en los filtros responde `400`.
+- Los errores usan el formato estándar *Problem Details* (por ejemplo `{"detail": "Obra no encontrada"}`).
+- Los integrantes que venían de Git-Wreckers necesitan JDK 21 para ejecutar el proyecto; no hace falta instalar Maven (se usa `./mvnw`).
+- RFC, PRD, Arquitectura y Evaluación de tecnologías se actualizaron para reflejar esta decisión.

@@ -1,0 +1,468 @@
+---
+title: "Arquitectura"
+---
+
+## 1. Objetivo
+
+El objetivo de este documento es definir una primera arquitectura para el sistema de recomendación de libros, cómics y manga disponibles en México.
+
+La arquitectura busca separar las diferentes partes del sistema para facilitar el desarrollo, mantenimiento y futuras modificaciones del proyecto.
+
+Esta es una arquitectura inicial y puede cambiar conforme avance el desarrollo y se obtenga más información durante los siguientes sprints.
+
+---
+
+## 2. Arquitectura general
+
+El sistema estará organizado principalmente en cuatro componentes:
+
+* **Frontend:** interfaz con la que interactúa el usuario.
+* **Backend:** encargado de procesar las peticiones y aplicar la lógica del sistema.
+* **Base de datos:** almacenamiento de usuarios, obras, calificaciones y demás información necesaria.
+* **Fuentes externas:** APIs o servicios externos utilizados para obtener información sobre libros, cómics y manga.
+
+La comunicación principal entre frontend y backend se realizará mediante HTTP utilizando una API REST.
+
+La arquitectura general propuesta es:
+
+```text
+                         ┌─────────────────┐
+                         │     Usuario     │
+                         └────────┬────────┘
+                                  │
+                                  ▼
+                         ┌─────────────────┐
+                         │    Frontend     │
+                         │   HTML / CSS /  │
+                         │   JavaScript    │
+                         └────────┬────────┘
+                                  │
+                              HTTP / REST
+                                  │
+                                  ▼
+                         ┌─────────────────┐
+                         │     Backend     │
+                         │   Spring Boot   │
+                         └───────┬─┬───────┘
+                                 │ │
+                    ┌────────────┘ └────────────┐
+                    │                           │
+                    ▼                           ▼
+           ┌─────────────────┐         ┌─────────────────┐
+           │   Base de datos  │         │ Fuentes externas│
+           │   relacional     │         │   / APIs        │
+           └─────────────────┘         └─────────────────┘
+                    │
+                    ▼
+           ┌─────────────────┐
+           │ Recomendaciones │
+           │ Content-Based   │
+           └─────────────────┘
+```
+
+El diagrama representa la comunicación principal del sistema. El backend funcionará como intermediario entre el frontend, la base de datos, las fuentes externas y el sistema de recomendaciones.
+
+La separación de componentes permitirá modificar o sustituir partes específicas del sistema sin afectar innecesariamente al resto.
+
+---
+
+## 3. Frontend
+
+El frontend será responsable de proporcionar la interfaz gráfica del sistema.
+
+La propuesta actual contempla el uso de:
+
+* HTML para la estructura de las páginas.
+* CSS para los estilos.
+* JavaScript para la interacción y comportamiento de la interfaz.
+
+El frontend tendrá, entre otras, las siguientes funciones:
+
+* Registro e inicio de sesión.
+* Búsqueda de obras.
+* Visualización de información.
+* Visualización de calificaciones.
+* Exploración de contenido.
+* Visualización de recomendaciones.
+* Interacción con el sistema de calificaciones.
+
+El frontend se comunicará con el backend mediante peticiones HTTP a los endpoints correspondientes de la API REST.
+
+Actualmente la vista son archivos estáticos dentro de `src/main/resources/static/` que Spring Boot sirve en `http://localhost:8080`. Como frontend y API comparten origen, no se necesita CORS. El detalle de la interfaz está en [Vista web](Vista-web).
+
+Por el momento no se establece un framework obligatorio para el frontend. Se podrán incorporar herramientas adicionales si las necesidades del proyecto lo justifican.
+
+---
+
+## 4. Backend
+
+El backend será responsable de implementar la lógica principal del sistema.
+
+La tecnología actual es **Java 21 con Spring Boot 3**, con Maven como gestor de dependencias (se incluye el wrapper `mvnw`).
+
+Entre sus responsabilidades estarán:
+
+* Gestionar usuarios.
+* Procesar búsquedas.
+* Consultar y modificar información almacenada.
+* Comunicarse con fuentes externas.
+* Procesar calificaciones.
+* Generar recomendaciones.
+* Validar información recibida desde el frontend.
+* Manejar errores.
+* Proporcionar una API REST para el frontend.
+
+La API se documenta automáticamente con OpenAPI y se puede probar desde Swagger UI (`/swagger-ui.html`). Los errores siguen el formato estándar *Problem Details* (RFC 9457) y no exponen información interna del servidor.
+
+---
+
+## 5. Base de datos
+
+El sistema necesitará una base de datos para almacenar información que debe mantenerse entre sesiones.
+
+Se propone utilizar una **base de datos relacional**.
+
+Entre los datos que podrían almacenarse se encuentran:
+
+* Usuarios.
+* Obras.
+* Autores.
+* Géneros.
+* Calificaciones.
+* Preferencias de usuarios.
+* Información relacionada con disponibilidad.
+* Datos necesarios para generar recomendaciones.
+
+La tecnología específica de base de datos todavía debe seleccionarse.
+
+Entre las alternativas consideradas se encuentran PostgreSQL, MySQL y SQLite. La opción planificada es **PostgreSQL 16** con **Spring Data JPA**.
+
+La decisión final se tomará considerando:
+
+* Compatibilidad con el backend.
+* Facilidad de desarrollo.
+* Documentación.
+* Rendimiento.
+* Escalabilidad.
+* Necesidades del modelo de datos.
+
+---
+
+## 6. Fuentes de datos y APIs
+
+El sistema utilizará fuentes externas para obtener información sobre libros, cómics y manga.
+
+Estas fuentes podrían proporcionar información como:
+
+* Título.
+* Autor.
+* Género.
+* Descripción.
+* Imagen de portada.
+* Fecha de publicación.
+* Identificadores de la obra.
+* Información relacionada con disponibilidad.
+
+El backend será el encargado de comunicarse con estas fuentes externas.
+
+Las fuentes externas se mantendrán separadas de la lógica principal del sistema para facilitar su sustitución o ampliación en el futuro.
+
+Los datos obtenidos podrán ser procesados y almacenados localmente cuando sea necesario para reducir dependencias externas y facilitar consultas posteriores.
+
+La selección definitiva de las APIs dependerá de factores como:
+
+* Disponibilidad.
+* Documentación.
+* Límites de uso.
+* Calidad de los datos.
+* Cobertura de libros, cómics y manga.
+* Información relacionada con disponibilidad en México.
+* Condiciones de uso y licencias.
+
+---
+
+## 7. Sistema de recomendaciones
+
+El sistema de recomendaciones será uno de los componentes principales del proyecto.
+
+La estrategia inicial propuesta es utilizar **filtrado basado en contenido (Content-Based Filtering)**.
+
+Este enfoque permitirá generar recomendaciones utilizando características de las obras, por ejemplo:
+
+* Género.
+* Autor.
+* Tipo de obra.
+* Temas.
+* Etiquetas.
+* Características obtenidas de las fuentes de datos.
+
+También se considerará la información proporcionada por el usuario, como sus calificaciones y preferencias.
+
+El flujo inicial será:
+
+```text
+Información de las obras
+          │
+          ▼
+    Características
+          │
+          ▼
+Representación de las obras
+          │
+          ▼
+ Comparación / similitud
+          │
+          ▼
+ Recomendaciones
+          │
+          ▼
+       Usuario
+```
+
+La arquitectura busca permitir que el sistema de recomendaciones pueda modificarse sin realizar cambios importantes en el resto de los componentes.
+
+En etapas posteriores podrá investigarse la incorporación de filtrado colaborativo o un enfoque híbrido si la cantidad y calidad de los datos disponibles lo permiten.
+
+---
+
+## 8. Comunicación entre componentes
+
+La comunicación principal seguirá este flujo:
+
+```text
+Usuario
+   │
+   ▼
+Frontend
+   │
+   │ Petición HTTP
+   ▼
+Backend
+   │
+   ├──────────────► Base de datos
+   │
+   ├──────────────► API externa
+   │
+   └──────────────► Sistema de recomendaciones
+                         │
+                         ▼
+                    Recomendaciones
+                         │
+                         ▼
+                       Backend
+                         │
+                         ▼
+                      Frontend
+                         │
+                         ▼
+                       Usuario
+```
+
+Por ejemplo, cuando un usuario solicite recomendaciones:
+
+1. El usuario realiza una acción desde el frontend.
+2. El frontend envía una petición al backend.
+3. El backend obtiene la información necesaria del usuario y de la base de datos.
+4. El backend obtiene información adicional de las fuentes externas cuando sea necesario.
+5. El sistema de recomendaciones procesa los datos.
+6. El backend devuelve las recomendaciones.
+7. El frontend muestra los resultados al usuario.
+
+---
+
+## 9. Organización del backend
+
+Se mantienen separadas las responsabilidades dentro del backend. El código se organiza **por funcionalidad** (un paquete por cada parte del dominio) y, dentro de cada una, en capas: controlador (rutas), servicio (lógica) y modelo.
+
+Estructura actual:
+
+```text
+src/main/java/mx/losmergeados/recomendador/
+├── RecomendadorApplication.java    Punto de entrada
+├── book/                           Catálogo de obras
+│   ├── Book.java                   Modelo (record)
+│   ├── Format.java                 BOOK, COMIC, MANGA
+│   ├── PublicationStatus.java      ONGOING, COMPLETED, HIATUS, CANCELLED
+│   ├── BookCatalog.java            Servicio: datos y consultas del catálogo
+│   └── BookController.java         API REST /api/books
+└── health/
+    └── HealthController.java       GET /api/health
+src/main/resources/
+├── application.properties          Configuración
+└── static/                         Vista web (index.html, css/, js/)
+src/test/java/...                   Pruebas (JUnit 5 + MockMvc)
+```
+
+Los paquetes previstos para siguientes sprints siguen la misma idea: `user/` (registro y sesión), `rating/` (valoraciones), `recommendation/` (motor de recomendaciones) y `source/` (adaptadores de fuentes externas).
+
+Flujo de una petición en la implementación actual:
+
+```text
+ Navegador
+    │
+    │  GET /                 →  static/index.html + css + js
+    │  GET /api/books        →  JSON
+    ▼
+ Spring Boot (puerto 8080)
+    ├── recursos estáticos   (src/main/resources/static)
+    └── BookController
+            │
+            └── BookCatalog (datos en memoria)  ──►  (siguiente sprint) repositorio JPA + PostgreSQL
+```
+
+La vista **no tiene lógica de negocio**: pide los datos a la API. El controlador tampoco guarda datos: delega en el servicio. Así, al cambiar la lista en memoria por una base de datos, solo se modifica `BookCatalog`.
+
+La idea principal es evitar colocar toda la lógica del sistema en un solo archivo y mantener separadas las responsabilidades.
+
+---
+
+## 10. Seguridad
+
+Aunque el proyecto se encuentra inicialmente en una etapa de desarrollo, se considerarán medidas básicas de seguridad.
+
+Entre ellas:
+
+* Validación de datos recibidos.
+* Manejo adecuado de contraseñas.
+* No almacenar contraseñas directamente en texto plano.
+* Validación de permisos para operaciones relacionadas con usuarios.
+* Protección de información sensible.
+* Manejo controlado de errores.
+* Evitar exponer información interna del servidor mediante mensajes de error.
+* Mantener credenciales de APIs y otros servicios fuera del código fuente.
+
+Las medidas específicas dependerán de las tecnologías seleccionadas para el backend y el despliegue.
+
+---
+
+## 11. Manejo de errores
+
+Los diferentes componentes deberán manejar los errores de forma controlada.
+
+El backend deberá devolver respuestas apropiadas cuando ocurra, por ejemplo:
+
+* Una petición inválida.
+* Un recurso inexistente.
+* Un problema de autenticación.
+* Un error de conexión con la base de datos.
+* Un error al consultar una API externa.
+* Un límite de uso alcanzado en una API.
+* Un error interno del servidor.
+
+El frontend deberá mostrar mensajes comprensibles para el usuario sin exponer información técnica innecesaria.
+
+---
+
+## 12. Despliegue
+
+Durante el desarrollo, los diferentes componentes podrán ejecutarse localmente.
+
+La arquitectura permitirá posteriormente desplegar el frontend, backend y base de datos en servicios separados o en una infraestructura común, dependiendo de las decisiones tomadas durante el proyecto.
+
+La configuración de producción se definirá posteriormente cuando estén seleccionadas las tecnologías definitivas y se tenga una versión funcional del sistema.
+
+Se deberán considerar:
+
+* Plataforma de alojamiento.
+* Variables de entorno.
+* Credenciales y secretos.
+* Comunicación entre servicios.
+* Costos y limitaciones de los servicios utilizados.
+
+---
+
+## 13. Control de versiones
+
+El desarrollo utilizará Git y GitHub.
+
+La rama `main` se mantendrá protegida y los cambios deberán realizarse mediante Pull Requests.
+
+El flujo general será:
+
+```text
+main
+ │
+ ├── feature/...
+ ├── docs/...
+ ├── spike/...
+ └── fix/...
+        │
+        ▼
+    Pull Request
+        │
+        ▼
+     Revisiones
+        │
+        ▼
+      Merge
+        │
+        ▼
+       main
+```
+
+La documentación del flujo de trabajo y las reglas para Pull Requests se encuentran en la guía de colaboración del proyecto.
+
+---
+
+## 14. Decisiones actuales
+
+Las decisiones iniciales de arquitectura son:
+
+| Componente                | Propuesta actual                    |
+| ------------------------- | ----------------------------------- |
+| Frontend                  | HTML, CSS y JavaScript              |
+| Backend                   | Java 21 + Spring Boot 3             |
+| Documentación de API      | OpenAPI / Swagger UI                |
+| Pruebas                   | JUnit 5 + MockMvc                   |
+| Comunicación              | API HTTP/REST                       |
+| Base de datos             | Base de datos relacional            |
+| Recomendaciones iniciales | Content-Based Filtering             |
+| Fuentes externas          | APIs integradas mediante el backend |
+| Control de versiones      | Git + GitHub                        |
+| Documentación             | Markdown + Quarto                   |
+
+Estas decisiones representan el estado actual del proyecto y pueden modificarse si durante el desarrollo se encuentra una alternativa más adecuada.
+
+---
+
+## 15. Decisiones pendientes
+
+Todavía quedan algunas decisiones por definir:
+
+* Confirmar PostgreSQL + Spring Data JPA como persistencia.
+* Mecanismo de autenticación (Spring Security planificado).
+* APIs externas que serán utilizadas.
+* Estructura definitiva de los endpoints.
+* Modelo de datos definitivo.
+* Método concreto para calcular la similitud entre obras.
+* Estrategia para manejar el problema de usuarios nuevos.
+* Tecnología y estrategia definitiva de despliegue.
+* Posible incorporación de filtrado colaborativo.
+
+Estas decisiones se irán definiendo conforme avance la investigación y el desarrollo.
+
+---
+
+## 16. Relación con el PRD y RFC
+
+Esta arquitectura complementa los documentos de requisitos y decisiones técnicas del proyecto.
+
+El **PRD** define principalmente qué debe hacer el sistema y cuáles son sus requisitos.
+
+El **RFC** documenta las decisiones y propuestas técnicas generales para construir el sistema.
+
+Este documento representa la aplicación de esas decisiones a nivel de arquitectura y organización de componentes.
+
+Los tres documentos deberán mantenerse alineados conforme avance el proyecto.
+
+---
+
+## 17. Estado del documento
+
+**Versión:** 1.2
+
+**Estado:** Arquitectura actualizada tras la unión de equipos (LosMergeados). La versión 1.1 fue escrita por el equipo Git-Wreckers; la sección de organización del backend incorpora la arquitectura implementada por el equipo 7.
+
+Esta arquitectura representa el estado actual de la propuesta técnica del proyecto. Podrá evolucionar conforme se implementen los primeros componentes del sistema, se validen las decisiones técnicas y se obtenga información adicional durante el desarrollo.
+
+Las modificaciones importantes de arquitectura deberán documentarse para mantener un registro de las decisiones técnicas del proyecto.

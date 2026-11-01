@@ -1,0 +1,403 @@
+---
+title: "RFC - Recomendador de libros, cómics y manga"
+---
+
+# 1. Introducción
+
+Este documento define la propuesta técnica para el desarrollo del recomendador de libros, cómics y manga de LosMergeados. Su objetivo es establecer cómo se organizará y construirá el sistema, así como documentar las decisiones técnicas que se vayan tomando durante el desarrollo.
+
+El proyecto consiste en desarrollar una aplicación web capaz de recomendar libros, cómics y manga disponibles en México, utilizando información obtenida de diferentes fuentes y las preferencias y calificaciones de los usuarios.
+
+Este RFC se considera un documento vivo, por lo que podrá modificarse conforme avance el proyecto y se obtenga nueva información durante las etapas de investigación, diseño e implementación.
+
+> **Nota de la versión 0.3.** El RFC original fue escrito por el equipo Git-Wreckers. Tras la unión de equipos que dio origen a LosMergeados se conservó su contenido y se actualizaron las decisiones técnicas del backend, que ahora usa **Java 21 + Spring Boot**. El razonamiento está en [Decisión de unificación](Decision-de-unificacion).
+
+# 2. Objetivo
+
+El objetivo de este RFC es establecer una base técnica para el desarrollo del sistema.
+
+Se busca definir:
+
+* La arquitectura general del sistema.
+* Las tecnologías base que serán utilizadas.
+* La comunicación entre los diferentes componentes.
+* El manejo y almacenamiento de los datos.
+* Las fuentes externas de información.
+* La estrategia inicial para el sistema de recomendaciones.
+* Los criterios utilizados para tomar decisiones técnicas.
+* Las decisiones técnicas que todavía requieren investigación.
+
+# 3. Alcance técnico
+
+El sistema estará compuesto inicialmente por una aplicación web que permita a los usuarios consultar y descubrir libros, cómics y manga.
+
+Desde el punto de vista técnico, el proyecto deberá contemplar:
+
+* Una interfaz web para los usuarios.
+* Un backend encargado de la lógica del sistema.
+* Un mecanismo para almacenar información de usuarios, obras y calificaciones.
+* Integración con fuentes externas de información.
+* Un sistema de búsqueda.
+* Un sistema de recomendaciones.
+* Comunicación entre frontend y backend.
+* Manejo básico de autenticación y datos de usuario.
+
+La propuesta tecnológica actual establece una base de HTML, CSS y JavaScript para el frontend y Java 21 con Spring Boot para el backend. La selección de herramientas adicionales y tecnologías específicas podrá modificarse conforme avance la investigación.
+
+# 4. Arquitectura propuesta
+
+La arquitectura inicial del sistema se dividirá en diferentes componentes para mantener separadas las responsabilidades.
+
+La estructura propuesta es:
+
+```text
+                 ┌──────────────────────┐
+                 │       Usuario        │
+                 └──────────┬───────────┘
+                            │
+                            ▼
+                 ┌──────────────────────┐
+                 │      Frontend        │
+                 │   HTML/CSS/JS        │
+                 └──────────┬───────────┘
+                            │
+                       HTTP / REST
+                            │
+                            ▼
+                 ┌──────────────────────┐
+                 │       Backend        │
+                 │ Java + Spring Boot   │
+                 │   Lógica del sistema │
+                 └───────┬───────┬──────┘
+                         │       │
+             ┌───────────┘       └────────────┐
+             ▼                                ▼
+   ┌──────────────────┐             ┌──────────────────┐
+   │    Base de datos │             │ Fuentes externas │
+   │    Relacional    │             │      / APIs      │
+   └──────────────────┘             └──────────────────┘
+```
+
+El frontend será responsable de presentar la información y recibir las acciones del usuario.
+
+El backend será responsable de procesar las solicitudes, aplicar la lógica del sistema y comunicarse con la base de datos y las fuentes externas.
+
+La base de datos almacenará la información necesaria para el funcionamiento del sistema.
+
+Las fuentes externas proporcionarán información adicional sobre libros, cómics y manga.
+
+La comunicación entre frontend y backend se realizará mediante HTTP utilizando una API de tipo REST.
+
+La arquitectura busca mantener separadas las responsabilidades para facilitar el mantenimiento y permitir modificar componentes individuales conforme avance el proyecto.
+
+# 5. Frontend
+
+El frontend será la parte del sistema con la que interactuará directamente el usuario.
+
+Inicialmente deberá permitir:
+
+* Visualizar la página principal.
+* Buscar obras.
+* Consultar información de una obra.
+* Consultar recomendaciones.
+* Registrar calificaciones.
+* Navegar entre las diferentes secciones del sistema.
+* Gestionar las interacciones relacionadas con la cuenta del usuario.
+
+La propuesta actual contempla el uso de:
+
+* HTML para la estructura.
+* CSS para los estilos.
+* JavaScript para la interacción y comportamiento de la interfaz.
+
+La vista actual se compone de archivos estáticos (`src/main/resources/static`) servidos por el mismo backend, por lo que no requiere un servidor aparte ni configuración de CORS. Por el momento no se establece un framework obligatorio para el frontend. La incorporación de herramientas adicionales se decidirá considerando la complejidad del proyecto y los resultados de la evaluación tecnológica.
+
+# 6. Backend
+
+El backend será responsable de implementar la lógica principal del sistema y proporcionar los servicios que utilizará el frontend.
+
+La decisión actual establece **Java 21** con **Spring Boot 3** como base del backend, Maven como gestor de dependencias y JUnit 5 + MockMvc para las pruebas. La documentación interactiva de la API se genera con OpenAPI (springdoc) en `/swagger-ui.html`.
+
+Entre sus responsabilidades estarán:
+
+* Gestionar usuarios.
+* Procesar búsquedas.
+* Consultar información de obras.
+* Registrar calificaciones.
+* Obtener información de fuentes externas.
+* Procesar preferencias de los usuarios.
+* Generar recomendaciones.
+* Comunicarse con la base de datos.
+* Validar las solicitudes recibidas desde el frontend.
+
+La investigación previa del equipo Git-Wreckers sobre Python (Flask vs FastAPI) se conserva como antecedente en [Prueba técnica de framework](Prueba-tecnica-backend-framework). Las ventajas que motivaron esa propuesta (validación automática y documentación autogenerada) se cubren en Spring Boot con Bean Validation y springdoc-openapi.
+
+# 7. Base de datos
+
+El sistema requerirá una base de datos para almacenar información necesaria para su funcionamiento.
+
+La propuesta actual contempla utilizar una **base de datos relacional**.
+
+Entre los datos que podrían almacenarse se encuentran:
+
+* Usuarios.
+* Información de obras.
+* Géneros y características.
+* Calificaciones.
+* Preferencias de usuarios.
+* Historial de interacciones.
+* Información utilizada por el sistema de recomendaciones.
+
+La estructura definitiva de la base de datos será definida durante la etapa de diseño.
+
+Todavía se debe seleccionar el gestor específico de base de datos. Para esta decisión se considerarán aspectos como:
+
+* Facilidad de uso.
+* Compatibilidad con Java / Spring Data JPA.
+* Documentación.
+* Rendimiento.
+* Escalabilidad.
+* Facilidad de desarrollo.
+* Compatibilidad con el modelo de datos del proyecto.
+
+# 8. Fuentes de datos y APIs
+
+Para obtener información sobre libros, cómics y manga se investigarán diferentes fuentes de datos y APIs públicas o disponibles para el proyecto.
+
+La integración con estas fuentes se realizará principalmente desde el backend.
+
+Se evaluarán aspectos como:
+
+* Información proporcionada.
+* Disponibilidad.
+* Límites de uso.
+* Documentación.
+* Facilidad de integración.
+* Calidad de los datos.
+* Cobertura de libros, cómics y manga.
+* Información relacionada con disponibilidad en México.
+* Condiciones de uso y licencias.
+
+Las fuentes externas se mantendrán separadas de la lógica principal del sistema para facilitar su sustitución o ampliación en el futuro.
+
+La selección final de las fuentes se documentará una vez concluida la investigación correspondiente.
+
+# 9. Sistema de recomendaciones
+
+Uno de los componentes principales del proyecto será el sistema de recomendaciones.
+
+A partir de la investigación inicial se propone comenzar con un enfoque de **filtrado basado en contenido**.
+
+Este enfoque permitirá utilizar características de las obras para identificar elementos similares y generar recomendaciones relacionadas con los intereses del usuario.
+
+La información que podría utilizarse incluye:
+
+* Géneros.
+* Categorías.
+* Etiquetas.
+* Autores.
+* Características de las obras.
+* Calificaciones y preferencias del usuario.
+
+El flujo inicial propuesto es:
+
+```text
+Información de las obras
+          │
+          ▼
+   Características
+          │
+          ▼
+Representación de las obras
+          │
+          ▼
+ Comparación / similitud
+          │
+          ▼
+ Recomendaciones
+          │
+          ▼
+       Usuario
+```
+
+La primera versión del sistema se enfocará en un recomendador basado en contenido debido a que puede comenzar a funcionar sin requerir una gran cantidad de usuarios o calificaciones.
+
+En etapas posteriores se podrá investigar la incorporación de filtrado colaborativo o un enfoque híbrido si los datos disponibles y el avance del proyecto lo permiten.
+
+La implementación y evaluación del algoritmo serán necesarias antes de considerar esta decisión como definitiva.
+
+# 10. Comunicación entre componentes
+
+El frontend y el backend se comunicarán mediante una API REST utilizando HTTP.
+
+De manera general, el flujo será:
+
+```text
+Usuario
+   │
+   ▼
+Frontend
+   │
+   │ Solicitud HTTP
+   ▼
+Backend
+   │
+   ├──► Base de datos
+   │
+   └──► APIs externas
+   │
+   ▼
+Respuesta HTTP
+   │
+   ▼
+Frontend
+   │
+   ▼
+Usuario
+```
+
+El backend será el encargado de procesar las solicitudes y devolver respuestas al frontend.
+
+La estructura definitiva de los endpoints, métodos HTTP, parámetros y formatos de respuesta se definirá durante la implementación de la API.
+
+# 11. Seguridad
+
+El sistema deberá considerar medidas básicas de seguridad desde las primeras etapas del desarrollo.
+
+Entre ellas:
+
+* Protección de credenciales de usuarios.
+* Validación de datos recibidos.
+* Manejo adecuado de sesiones o mecanismos de autenticación.
+* Evitar almacenar información sensible de forma insegura.
+* Validar solicitudes realizadas al backend.
+* Proteger las credenciales utilizadas para acceder a servicios externos.
+* Mantener las claves y variables sensibles fuera del código fuente.
+* Evitar mostrar información interna del servidor en los mensajes de error.
+
+Las medidas específicas dependerán de las tecnologías seleccionadas y de los mecanismos de autenticación que se implementen.
+
+# 12. Manejo de errores
+
+El sistema deberá manejar errores tanto en el frontend como en el backend.
+
+Se deberán contemplar situaciones como:
+
+* Datos incorrectos proporcionados por el usuario.
+* Fallos de comunicación con el backend.
+* Errores de conexión con la base de datos.
+* Fuentes externas no disponibles.
+* Límites de uso alcanzados en una API.
+* Información no encontrada.
+* Errores internos del servidor.
+
+Los errores deberán comunicarse de forma comprensible al usuario cuando sea necesario, evitando mostrar información interna del sistema.
+
+El backend deberá utilizar respuestas HTTP apropiadas para diferenciar errores de validación, recursos no encontrados y errores internos.
+
+# 13. Control de versiones y colaboración
+
+El código fuente será administrado mediante Git y GitHub.
+
+La rama `main` será utilizada como rama principal y estará protegida mediante las reglas configuradas en el repositorio.
+
+Los cambios deberán realizarse mediante ramas de trabajo y Pull Requests.
+
+El flujo general será:
+
+```text
+main
+ │
+ ├── rama de trabajo
+ │       │
+ │       ├── cambios
+ │       ├── commits
+ │       └── push
+ │
+ └──────► Pull Request
+              │
+              ▼
+           Revisión
+              │
+              ▼
+            Merge
+              │
+              ▼
+             main
+```
+
+Los Pull Requests deberán cumplir las reglas de protección configuradas para main, incluyendo las revisiones requeridas.
+
+Los detalles específicos de colaboración, ramas y convenciones de commits se documentan en la guía de colaboración del proyecto.
+
+# 14. Despliegue
+
+El método de despliegue será definido durante las etapas posteriores del proyecto.
+
+Se deberá considerar:
+
+* Dónde será alojado el frontend.
+* Dónde será alojado el backend.
+* Dónde se alojará la base de datos.
+* Configuración de variables de entorno.
+* Acceso a servicios externos.
+* Costos y limitaciones de los servicios utilizados.
+* Configuración necesaria para mantener seguras las credenciales.
+
+El despliegue se considerará una etapa posterior al desarrollo de la versión inicial del sistema.
+
+# 15. Decisiones técnicas actuales
+
+A partir de las investigaciones realizadas hasta el momento, se establecen las siguientes decisiones iniciales:
+
+| Componente                | Decisión actual                                     |
+| ------------------------- | --------------------------------------------------- |
+| Frontend                  | HTML, CSS y JavaScript                              |
+| Backend                   | Java 21 + Spring Boot 3 (Maven)                     |
+| API documentada           | OpenAPI / Swagger UI (springdoc)                    |
+| Pruebas                   | JUnit 5 + MockMvc                                   |
+| Comunicación              | HTTP / API REST                                     |
+| Base de datos             | Base de datos relacional                            |
+| Recomendaciones iniciales | Filtrado basado en contenido                        |
+| Fuentes externas          | APIs o fuentes externas integradas desde el backend |
+| Control de versiones      | Git y GitHub                                        |
+| Documentación             | Markdown / Quarto                                   |
+
+Estas decisiones representan la propuesta técnica actual y podrán modificarse si durante la implementación se encuentra una alternativa más adecuada para los requisitos del proyecto.
+
+# 16. Decisiones técnicas pendientes
+
+A pesar de las decisiones iniciales establecidas, todavía existen aspectos que deberán definirse antes o durante la implementación.
+
+Entre ellos:
+
+* Gestor específico de base de datos (PostgreSQL es la opción planificada, junto con Spring Data JPA).
+* Mecanismo de autenticación (Spring Security es la opción planificada).
+* Posibles herramientas adicionales para el frontend.
+* Fuentes de datos y APIs definitivas.
+* Estructura definitiva de la base de datos.
+* Estructura definitiva de los endpoints de la API.
+* Método exacto para calcular la similitud entre obras.
+* Evaluación del sistema de recomendaciones.
+* Plataforma de despliegue.
+* Estrategia definitiva de autenticación y recuperación de cuenta.
+
+Estas decisiones serán actualizadas en este documento conforme avance la investigación y el desarrollo.
+
+# 17. Relación con el PRD
+
+El RFC complementa al PRD del proyecto.
+
+El PRD define principalmente **qué debe hacer el sistema y cuáles son sus requisitos**, mientras que este RFC documenta **cómo se propone construirlo técnicamente**.
+
+Las decisiones técnicas documentadas aquí deberán mantenerse alineadas con los requisitos definidos en el PRD.
+
+Cuando una decisión técnica implique modificar el alcance o algún requisito del sistema, ambos documentos deberán actualizarse para mantener la trazabilidad.
+
+# 18. Estado del documento
+
+**Versión:** 0.3
+
+**Estado:** Propuesta técnica actualizada tras la unión de equipos (LosMergeados).
+
+Este documento representa la propuesta técnica actual del proyecto y podrá modificarse conforme se tomen nuevas decisiones durante la investigación, diseño e implementación.

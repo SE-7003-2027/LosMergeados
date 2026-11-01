@@ -1,0 +1,75 @@
+---
+title: "Roadmap de sprints"
+---
+
+El proyecto se desarrolla en **6 sprints**. Los primeros se trabajaron en dos equipos por separado (Git-Wreckers y Equipo 7); a partir de la unión, el trabajo continúa como LosMergeados.
+
+| Etapa | Enfoque | Estado |
+|---|---|---|
+| Sprint 1 | README, guías de colaboración, PRD inicial | ✅ Completado (en los equipos de origen) |
+| Sprint 2 | Investigación (SPIKEs), RFC, arquitectura, proyecto base, API en memoria, vista web y wiki | ✅ Completado (en los equipos de origen) |
+| Unificación | Formar LosMergeados y combinar ambos proyectos | ✅ Completado |
+| Sprint 3 | Base de datos (PostgreSQL + Spring Data JPA) | 📋 Planificado |
+| Sprints 4 a 6 | Por definir a partir de las prioridades del PRD | ⏳ |
+
+> El orden de los sprints 4 a 6 es una propuesta y debe confirmarse con el equipo en la planeación.
+
+## Lo que ya se hizo
+
+### Git-Wreckers (Sprints 1 y 2)
+
+- README, guía de colaboración y Wiki en Quarto
+- PRD y RFC
+- SPIKEs de fuentes de datos, algoritmos de recomendación y tecnologías
+- Arquitectura inicial
+- Prueba técnica Flask vs FastAPI y API mínima en FastAPI
+
+### Equipo 7 (Sprints 1 y 2)
+
+- README y CONTRIBUTING
+- Proyecto Spring Boot + Maven con Java 21
+- Endpoint `GET /api/books` con datos en memoria y estatus de publicación
+- Vista web con búsqueda, filtros, agrupación y skeletons
+- Pruebas de la capa web
+- Wiki del proyecto
+
+### Unificación (LosMergeados)
+
+- [x] Código base de Equipo 7 con paquete `mx.losmergeados.recomendador`
+- [x] Capa de servicio `BookCatalog` (idea de Git-Wreckers)
+- [x] `GET /api/books/{id}` con 404, filtros `?format=` y `?status=`, `GET /api/health`
+- [x] `format` y `status` como `enum`
+- [x] Swagger UI (`/swagger-ui.html`)
+- [x] Catálogo de ejemplo combinado (11 obras)
+- [x] Documentación de ambos equipos unificada en `docs/wiki/` (ver [Decisión de unificación](Decision-de-unificacion))
+
+## Sprint 3 (siguiente)
+
+- [ ] Reemplazar la lista en memoria por un repositorio JPA + PostgreSQL
+- [ ] Convertir `Book` en entidad JPA
+- [ ] Docker Compose para levantar PostgreSQL en local
+
+## Backlog general
+
+Tomado de las prioridades del [PRD](PRD); se asignará a sprints conforme el equipo los planifique.
+
+**Prioridad alta (MVP)**
+
+- [ ] Registro e inicio de sesión (RF01, RF02) — Spring Security
+- [ ] Búsqueda de obras desde el servidor (RF03)
+- [ ] Ficha de detalle de una obra en la vista (RF05)
+- [ ] Valoración de obras y su almacenamiento (RF07)
+- [ ] Recomendaciones iniciales basadas en contenido (RF09)
+
+**Prioridad media**
+
+- [ ] Historial de valoraciones (RF08)
+- [ ] Integración con fuentes externas: Google Books, AniList, Comic Vine (ver [Fuentes de datos y APIs](Fuentes-de-datos-y-APIs))
+- [ ] Disponibilidad en México con fuente y fecha (RF06)
+- [ ] Explicación de las recomendaciones
+- [ ] Paginación y ordenamiento
+
+**Infraestructura**
+
+- [ ] CI con GitHub Actions (`./mvnw test` en cada Pull Request)
+- [ ] Despliegue

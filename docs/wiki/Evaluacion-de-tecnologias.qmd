@@ -1,0 +1,553 @@
+---
+title: "SPIKE - Evaluación de tecnologías del proyecto"
+---
+
+# 1. Objetivo
+
+El objetivo de este SPIKE es investigar y comparar diferentes tecnologías que podrían utilizarse para desarrollar el sistema.
+
+> Este SPIKE fue elaborado por el equipo Git-Wreckers. Al unirse con el equipo 7 para formar LosMergeados se agregó la alternativa **Java / Spring Boot** (sección 4.3), que es la que se adoptó. Las demás secciones se conservan como registro de la investigación.
+
+El proyecto consiste en desarrollar un sistema web de recomendación de libros, cómics y manga disponibles en México. Por lo tanto, se necesitan tecnologías para diferentes partes del sistema, principalmente:
+
+* Frontend.
+* Backend.
+* Base de datos.
+* Comunicación entre componentes.
+* Sistema de recomendaciones.
+* Control de versiones.
+* Pruebas y desarrollo.
+
+La intención de esta investigación es conocer las alternativas disponibles y establecer una propuesta tecnológica inicial, manteniendo como pendientes aquellas decisiones que requieran pruebas adicionales.
+
+# 2. Criterios de evaluación
+
+Para comparar las diferentes alternativas se consideran los siguientes criterios:
+
+* Facilidad de aprendizaje y desarrollo.
+* Compatibilidad con el proyecto.
+* Disponibilidad de documentación.
+* Compatibilidad con otras tecnologías.
+* Facilidad para realizar pruebas.
+* Facilidad de mantenimiento.
+* Posibilidad de ampliar el sistema posteriormente.
+* Disponibilidad de librerías y herramientas.
+* Compatibilidad con las necesidades del sistema de recomendaciones.
+* Complejidad que introduce al proyecto.
+
+También se toma en cuenta que se trata de un proyecto académico, por lo que se busca evitar una complejidad innecesaria.
+
+# 3. Frontend
+
+El frontend será la parte del sistema con la que interactuará directamente el usuario.
+
+Se necesita permitir acciones como:
+
+* Registrarse.
+* Iniciar sesión.
+* Buscar contenidos.
+* Consultar información.
+* Calificar contenidos.
+* Consultar recomendaciones.
+
+# 3.1 HTML, CSS y JavaScript
+
+HTML, CSS y JavaScript permiten construir directamente una aplicación web sin depender obligatoriamente de un framework adicional.
+
+### Ventajas
+
+* Son tecnologías estándar de la web.
+* Son relativamente sencillas para comenzar.
+* Existe mucha documentación.
+* Permiten crear una interfaz funcional sin agregar demasiadas dependencias.
+* Se pueden comunicar con un backend mediante solicitudes HTTP.
+
+### Limitaciones
+
+* Conforme aumenta el tamaño de la aplicación, puede ser necesario organizar cuidadosamente el código.
+* La actualización dinámica de diferentes partes de la interfaz puede requerir más código.
+* Algunas funcionalidades comunes deben implementarse manualmente o mediante librerías externas.
+
+# 3.2 React
+
+React es una biblioteca para construir interfaces de usuario mediante componentes.
+
+Una aplicación podría dividirse en componentes como:
+
+```text
+Aplicación
+├── Barra de navegación
+├── Búsqueda
+├── Lista de contenidos
+├── Tarjeta de contenido
+├── Detalles
+├── Calificaciones
+└── Recomendaciones
+```
+
+### Ventajas
+
+* Permite dividir la interfaz en componentes reutilizables.
+* Tiene un ecosistema amplio.
+* Facilita la construcción de interfaces dinámicas.
+* Puede organizar mejor aplicaciones que crecen en tamaño.
+
+### Limitaciones
+
+* Introduce herramientas y conceptos adicionales.
+* Requiere aprender el modelo de componentes y su ecosistema.
+* Puede ser innecesario para una aplicación pequeña.
+
+# 3.3 Consideración inicial para el frontend
+
+La propuesta actual es comenzar utilizando HTML, CSS y JavaScript.
+
+Esta alternativa permite construir el primer prototipo sin introducir dependencias adicionales y es suficiente para implementar las funcionalidades iniciales del sistema.
+
+React puede evaluarse posteriormente si el tamaño y la complejidad de la interfaz justifican utilizar una arquitectura basada en componentes.
+
+Por lo tanto, el uso de React se considera una decisión pendiente y no un requisito inicial del proyecto.
+
+# 4. Backend
+
+El backend será responsable de manejar la lógica del sistema y la comunicación entre el frontend, la base de datos y las fuentes externas.
+
+Entre sus responsabilidades podrían encontrarse:
+
+* Autenticación.
+* Gestión de usuarios.
+* Gestión de calificaciones.
+* Búsqueda.
+* Consulta de información.
+* Generación de recomendaciones.
+* Comunicación con APIs externas.
+* Comunicación con la base de datos.
+
+# 4.1 Python
+
+Python es un lenguaje de programación de propósito general con un ecosistema amplio para desarrollo web y procesamiento de datos.
+
+Algunas alternativas para construir el backend serían frameworks como Flask o FastAPI.
+
+### Ventajas
+
+* Sintaxis relativamente sencilla.
+* Amplio ecosistema.
+* Buen soporte para procesamiento de datos.
+* Existen numerosas bibliotecas para procesamiento de datos y sistemas de recomendación.
+* Puede utilizarse para construir APIs HTTP.
+
+### Limitaciones
+
+* Es necesario seleccionar y aprender un framework.
+* Algunas aplicaciones pueden requerir una organización cuidadosa del código conforme crecen.
+
+# 4.2 JavaScript / Node.js
+
+Node.js permite ejecutar JavaScript en el servidor.
+
+Podría utilizarse junto con un framework como Express para construir una API.
+
+### Ventajas
+
+* Permite utilizar JavaScript tanto en frontend como en backend.
+* Tiene un ecosistema amplio mediante npm.
+* Es común para desarrollar APIs web.
+* Facilita compartir algunos conocimientos entre frontend y backend.
+
+### Limitaciones
+
+* El ecosistema tiene una gran cantidad de paquetes y alternativas.
+* La elección y organización de dependencias puede aumentar la complejidad.
+* Para algunas tareas relacionadas con procesamiento de datos puede ser conveniente utilizar herramientas especializadas de otros lenguajes.
+
+# 4.3 Java / Spring Boot
+
+Spring Boot es un framework de Java para construir aplicaciones web y APIs con configuración mínima. El equipo 7 lo utilizó para la primera versión funcional del catálogo (API REST, vista web y pruebas).
+
+### Ventajas
+
+* Ya existe una implementación funcional del proyecto con esta tecnología (API, vista web con filtros y agrupación, pruebas automatizadas).
+* Tipado estático: muchos errores se detectan al compilar.
+* Ecosistema integrado para lo que el PRD pide: Spring Data JPA (persistencia), Spring Security (autenticación), Bean Validation (validación de entradas) y springdoc-openapi (documentación interactiva, equivalente a `/docs` de FastAPI).
+* Pruebas integradas con JUnit 5 y MockMvc, sin levantar un servidor.
+* La vista web se sirve desde la misma aplicación, por lo que no requiere un segundo servidor ni CORS.
+* Maven Wrapper: cualquier integrante puede compilar solo con el JDK instalado.
+
+### Limitaciones
+
+* Más código y configuración que Python para tareas simples.
+* Curva de aprendizaje mayor para quienes no han usado Java o anotaciones de Spring.
+* Las bibliotecas de procesamiento de datos y recomendación son menos abundantes que en Python; para el enfoque basado en contenido propuesto (similitud de características) basta con implementarlo directamente o con bibliotecas ligeras.
+* Tiempo de arranque y consumo de memoria mayores que un servidor de Python mínimo.
+
+# 4.4 Decisión para el backend
+
+La propuesta inicial de Git-Wreckers era **Python**, y su prueba técnica recomendó FastAPI frente a Flask (ver [Prueba técnica de framework](Prueba-tecnica-backend-framework)).
+
+Al unificar los equipos se decidió adoptar **Java 21 + Spring Boot 3**, principalmente porque era la implementación más avanzada y permitía no retrasar el proyecto. Las razones que llevaron a preferir FastAPI (validación automática y documentación autogenerada) también se cubren con Spring Boot mediante Bean Validation y springdoc-openapi.
+
+Node.js permanece como una alternativa técnicamente posible, pero no se considera actualmente.
+
+# 5. Base de datos
+
+La base de datos deberá almacenar información relacionada con usuarios, contenidos y calificaciones.
+
+Algunos datos podrían ser:
+
+```text
+Usuario
+- id
+- nombre
+- correo
+- contraseña almacenada de forma segura
+
+Contenido
+- id
+- título
+- tipo
+- autor
+- descripción
+- género
+- disponibilidad
+
+Calificación
+- usuario_id
+- contenido_id
+- calificación
+```
+
+La arquitectura actual establece una **base de datos relacional como propuesta inicial**.
+
+# 5.1 PostgreSQL
+
+PostgreSQL es un sistema de gestión de bases de datos relacional.
+
+### Ventajas
+
+* Es de código abierto.
+* Soporta relaciones entre diferentes entidades.
+* Permite utilizar restricciones e integridad referencial.
+* Tiene soporte para consultas complejas.
+* Puede utilizarse en aplicaciones pequeñas y crecer posteriormente.
+
+### Limitaciones
+
+* Requiere configurar y administrar un servidor de base de datos.
+* Para un prototipo extremadamente pequeño puede ser más de lo necesario.
+
+# 5.2 MySQL
+
+MySQL también es un sistema de gestión de bases de datos relacional.
+
+### Ventajas
+
+* Es ampliamente utilizado.
+* Tiene mucha documentación.
+* Es compatible con diferentes herramientas de desarrollo.
+* Es adecuado para almacenar información estructurada.
+
+### Limitaciones
+
+* Comparte parte de la complejidad administrativa de otros sistemas de bases de datos servidor.
+* Para este proyecto las diferencias prácticas frente a PostgreSQL deberán evaluarse según las necesidades concretas.
+
+# 5.3 SQLite
+
+SQLite es una base de datos relacional que almacena la información directamente en un archivo.
+
+### Ventajas
+
+* No necesita un servidor independiente.
+* Es sencilla de configurar.
+* Es útil para prototipos y aplicaciones pequeñas.
+* Facilita comenzar rápidamente el desarrollo.
+
+### Limitaciones
+
+* No está pensada para los mismos escenarios de concurrencia que una base de datos servidor.
+* Si el sistema crece, podría ser conveniente migrar a una solución servidor.
+
+# 5.4 Consideración inicial para la base de datos
+
+La arquitectura establece actualmente el uso de una **base de datos relacional**, pero todavía no se ha seleccionado el gestor específico.
+
+PostgreSQL, MySQL y SQLite son alternativas posibles.
+
+La elección deberá considerar:
+
+* Necesidades de concurrencia.
+* Facilidad de configuración.
+* Integración con el backend (Spring Data JPA).
+* Entorno de despliegue.
+* Facilidad de pruebas.
+* Necesidades reales del sistema.
+
+# 6. Comunicación entre componentes
+
+El frontend y backend necesitarán comunicarse mediante HTTP.
+
+La arquitectura actual propone utilizar una API basada en **REST**.
+
+Un posible flujo sería:
+
+```text
+Usuario
+   |
+   v
+Frontend
+   |
+   | HTTP / REST
+   v
+Backend / API
+   |
+   +--------> Base de datos
+   |
+   +--------> APIs externas
+   |
+   +--------> Sistema de recomendaciones
+```
+
+Algunos endpoints posibles serían:
+
+```text
+GET    /api/contenidos
+GET    /api/contenidos/{id}
+POST   /api/usuarios
+POST   /api/login
+POST   /api/calificaciones
+GET    /api/recomendaciones
+```
+
+Los endpoints son solamente una propuesta inicial y deberán definirse formalmente durante el desarrollo.
+
+# 7. Sistema de recomendaciones
+
+El sistema de recomendaciones representa una parte importante del proyecto.
+
+De acuerdo con el SPIKE de algoritmos de recomendación, se consideran principalmente:
+
+* Filtrado basado en contenido.
+* Filtrado colaborativo.
+* Sistema híbrido.
+
+La propuesta inicial es evaluar un enfoque basado en contenido.
+
+Para una primera versión podría utilizarse información como:
+
+* Género.
+* Autor.
+* Categorías.
+* Etiquetas.
+* Descripción.
+* Tipo de contenido.
+* Idioma.
+
+Las calificaciones e interacciones de los usuarios podrían incorporarse posteriormente para evaluar un enfoque colaborativo o híbrido.
+
+La disponibilidad en México puede utilizarse como criterio de filtrado del catálogo, dependiendo de la información proporcionada por las fuentes externas.
+
+No se considera necesario introducir aprendizaje automático complejo desde el inicio si una solución basada en similitud de características permite cumplir con los objetivos del proyecto.
+
+# 8. Control de versiones
+
+El proyecto utiliza Git y GitHub para el control de versiones y la colaboración.
+
+El repositorio principal utiliza `main` como rama protegida.
+
+El flujo general es:
+
+```text
+main
+ |
+ +----> rama de trabajo
+          |
+          +----> cambios
+          |
+          +----> commit
+          |
+          +----> Pull Request
+                    |
+                    +----> revisión
+                    |
+                    +----> merge
+```
+
+Las ramas deberán utilizar nombres descriptivos relacionados con el trabajo realizado.
+
+Los cambios hacia `main` se realizarán mediante Pull Requests.
+
+# 9. Herramientas de desarrollo
+
+Además de las tecnologías principales, se utilizarán diferentes herramientas para facilitar el desarrollo.
+
+## Git
+
+Se utilizará para controlar las versiones del código y documentación.
+
+## GitHub
+
+Se utilizará para:
+
+* Alojar el repositorio.
+* Administrar Issues.
+* Administrar Pull Requests.
+* Organizar el trabajo mediante GitHub Projects.
+* Revisar cambios.
+
+## Quarto
+
+Se utiliza para mantener la documentación de la Wiki mediante archivos `.qmd` y generar sus versiones Markdown.
+
+El flujo utilizado es:
+
+```text
+Archivo .qmd
+     |
+     v
+   Quarto
+     |
+     v
+Archivo .md
+```
+
+# 10. Pruebas
+
+El proyecto deberá incorporar pruebas conforme avance el desarrollo.
+
+Dependiendo de la tecnología seleccionada podrían utilizarse:
+
+* Pruebas unitarias.
+* Pruebas de integración.
+* Pruebas de endpoints.
+* Pruebas manuales de la interfaz.
+* Pruebas del sistema de recomendaciones.
+
+Con la tecnología seleccionada, el backend utiliza **JUnit 5**, **MockMvc** (pruebas de endpoints sin levantar el servidor) y **AssertJ** para pruebas unitarias. Las pruebas se ejecutan con `./mvnw test`.
+
+# 11. Seguridad
+
+La tecnología seleccionada deberá permitir implementar medidas básicas de seguridad.
+
+Entre ellas:
+
+* No almacenar contraseñas en texto plano.
+* Validar los datos recibidos por el servidor.
+* Validar las entradas del usuario.
+* Utilizar consultas parametrizadas.
+* Proteger los endpoints que requieran autenticación.
+* No almacenar claves o secretos directamente en el repositorio.
+* Utilizar variables de entorno para configuraciones sensibles.
+
+La implementación concreta dependerá de las tecnologías seleccionadas.
+
+# 12. Despliegue
+
+El sistema deberá poder ejecutarse en un entorno de desarrollo y posteriormente en un entorno de demostración o producción.
+
+Para una primera versión será necesario considerar:
+
+* Servidor del backend.
+* Servidor o alojamiento del frontend.
+* Base de datos.
+* Variables de entorno.
+* Conexión entre frontend y backend.
+* Acceso a APIs externas.
+
+No se selecciona todavía un proveedor de despliegue específico.
+
+# 13. Comparación general
+
+| Área                 | Alternativas                               | Situación actual                            |
+| -------------------- | ------------------------------------------ | ------------------------------------------- |
+| Frontend             | HTML/CSS/JS, React                         | HTML/CSS/JS propuesto inicialmente          |
+| Backend              | Python, Node.js, Java                      | Java 21 adoptado                            |
+| Framework backend    | Flask, FastAPI, Spring Boot                | Spring Boot 3 adoptado                      |
+| Base de datos        | PostgreSQL, MySQL, SQLite                  | Base relacional propuesta; gestor pendiente |
+| API                  | REST                                       | Propuesto                                   |
+| Recomendaciones      | Basado en contenido, colaborativo, híbrido | Basado en contenido propuesto inicialmente  |
+| Control de versiones | Git + GitHub                               | Adoptado                                    |
+| Documentación        | Quarto + Markdown                          | Adoptado                                    |
+
+Esta tabla distingue las decisiones actuales de las alternativas que todavía requieren evaluación.
+
+# 14. Propuesta inicial
+
+Como propuesta inicial se considera una arquitectura con:
+
+```text
+Frontend
+HTML / CSS / JavaScript
+        |
+        | REST API
+        v
+Backend
+Java + Spring Boot
+        |
+        +----------> Base de datos relacional
+        |
+        +----------> APIs externas
+        |
+        +----------> Sistema de recomendaciones
+```
+
+Esta propuesta mantiene una separación clara entre los principales componentes del sistema.
+
+Para el frontend se propone comenzar con HTML, CSS y JavaScript.
+
+Para el backend se utiliza Java 21 con Spring Boot 3 (ver sección 4.4).
+
+Para la persistencia se propone utilizar una base de datos relacional, dejando pendiente la selección del gestor.
+
+Para la comunicación se propone utilizar HTTP/REST.
+
+Para las recomendaciones se propone evaluar inicialmente el filtrado basado en contenido.
+
+Estas propuestas deberán validarse durante las primeras pruebas de implementación.
+
+# 15. Prueba técnica propuesta
+
+Antes de cerrar las decisiones que permanecen pendientes, se propone realizar pruebas pequeñas con las alternativas principales.
+
+Las pruebas deberán considerar, según corresponda:
+
+* Facilidad de configuración.
+* Facilidad de integración con el resto del sistema.
+* Tiempo necesario para implementar una funcionalidad básica.
+* Facilidad para realizar pruebas.
+* Complejidad de mantenimiento.
+* Compatibilidad con las necesidades del sistema.
+* Consumo de recursos.
+* Disponibilidad de documentación.
+* Facilidad de despliegue.
+
+Para el sistema de recomendaciones también deberá considerarse la capacidad de procesar las características obtenidas de las fuentes de datos seleccionadas.
+
+Los resultados deberán documentarse antes de establecer las decisiones técnicas definitivas.
+
+# 16. Decisiones pendientes
+
+Todavía deben definirse:
+
+* Si el frontend requiere React o si HTML/CSS/JavaScript es suficiente.
+* Sistema gestor de base de datos.
+* Librerías específicas para el sistema de recomendaciones.
+* Entorno de despliegue.
+* Estructura definitiva de la API.
+* Estrategia definitiva para autenticación.
+* Estrategia para manejar las APIs externas.
+* Resultado de las pruebas técnicas de las alternativas.
+
+Estas decisiones deberán documentarse posteriormente en el RFC cuando se tengan los resultados de las investigaciones y pruebas correspondientes.
+
+# 17. Conclusión
+
+Existen varias tecnologías capaces de cubrir las necesidades del proyecto.
+
+La arquitectura actual utiliza HTML, CSS y JavaScript para el frontend, Java con Spring Boot para el backend, HTTP/REST para la comunicación y una base de datos relacional para la persistencia.
+
+Para el sistema de recomendaciones se propone evaluar inicialmente un enfoque basado en contenido, manteniendo la posibilidad de incorporar posteriormente técnicas colaborativas.
+
+Todavía existen decisiones específicas pendientes, como el gestor de base de datos, las librerías de recomendación y el entorno de despliegue.
+
+La selección definitiva deberá realizarse a partir de las pruebas técnicas y de las necesidades que aparezcan durante la implementación del proyecto.
