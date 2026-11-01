@@ -1,6 +1,7 @@
 **LosMergeados**
 
 - [Inicio](Home)
+- [Consolidación de avances](Consolidacion-de-avances)
 
 **Requerimientos y diseño**
 

@@ -48,6 +48,7 @@ LosMergeados se formó al unir a los integrantes que estaban trabajando en dos e
 | [Vista web](Vista-web) | La interfaz para explorar el catálogo |
 | [Guía de colaboración](Guia-de-colaboracion) | Ramas, commits, Pull Requests y wiki |
 | [Roadmap de sprints](Roadmap-de-sprints) | Qué se ha hecho y qué sigue |
+| [Consolidación de avances](Consolidacion-de-avances) | Inventario de avances de ambos equipos y plan de consolidación |
 
 ## Estado actual
 
