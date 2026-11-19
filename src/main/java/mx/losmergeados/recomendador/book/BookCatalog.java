@@ -8,56 +8,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
-import static mx.losmergeados.recomendador.book.Format.*;
-import static mx.losmergeados.recomendador.book.PublicationStatus.*;
-
-/**
- * Servicio del catálogo de libros, cómics y manga.
- *
- * Utiliza datos de ejemplo en memoria.
- * Permite listar, filtrar, buscar y consultar por ID.
- */
 @Service
 public class BookCatalog {
 
-    private final List<Book> books = List.of(
-        new Book(1L, "El nombre del viento",
-            "Patrick Rothfuss", "Fantasía", BOOK, ONGOING),
+    private final BookRepository repository;
 
-        new Book(2L, "Akira",
-            "Katsuhiro Otomo", "Ciencia ficción", MANGA, COMPLETED),
+    public BookCatalog(BookRepository repository) {
+        this.repository = repository;
+    }
 
-        new Book(3L, "Watchmen",
-            "Alan Moore", "Superhéroes", COMIC, COMPLETED),
-
-        new Book(4L, "Dune",
-            "Frank Herbert", "Ciencia ficción", BOOK, COMPLETED),
-
-        new Book(5L, "Berserk",
-            "Kentaro Miura", "Fantasía oscura", MANGA, ONGOING),
-
-        new Book(6L, "Saga",
-            "Brian K. Vaughan", "Ciencia ficción", COMIC, HIATUS),
-
-        new Book(7L, "La sombra del viento",
-            "Carlos Ruiz Zafón", "Misterio", BOOK, COMPLETED),
-
-        new Book(8L, "Fullmetal Alchemist",
-            "Hiromu Arakawa", "Acción", MANGA, COMPLETED),
-
-        new Book(9L, "Cien años de soledad",
-            "Gabriel García Márquez", "Realismo mágico", BOOK, COMPLETED),
-
-        new Book(10L, "Death Note",
-            "Tsugumi Ohba", "Thriller", MANGA, COMPLETED),
-
-        new Book(11L, "One Piece",
-            "Eiichiro Oda", "Aventura", MANGA, ONGOING)
-    );
-
-    /**
-     * Método original para mantener compatibilidad.
-     */
     public List<Book> list(
             Format format,
             PublicationStatus status) {
@@ -65,10 +24,6 @@ public class BookCatalog {
         return list(format, status, null);
     }
 
-    /**
-     * Busca obras por título, autor o género.
-     * También admite filtros combinados.
-     */
     public List<Book> list(
             Format format,
             PublicationStatus status,
@@ -78,7 +33,9 @@ public class BookCatalog {
             query == null ? "" : query.trim()
         );
 
-        return books.stream()
+        return repository.findAll()
+            .stream()
+            .map(BookEntity::toBook)
             .filter(book ->
                 format == null || book.format() == format)
             .filter(book ->
@@ -94,9 +51,6 @@ public class BookCatalog {
             .toList();
     }
 
-    /**
-     * Normaliza texto para ignorar mayúsculas y acentos.
-     */
     private static String normalize(String value) {
         return Normalizer
             .normalize(value, Normalizer.Form.NFD)
@@ -104,12 +58,8 @@ public class BookCatalog {
             .toLowerCase(Locale.ROOT);
     }
 
-    /**
-     * Consulta una obra mediante su identificador.
-     */
     public Optional<Book> findById(long id) {
-        return books.stream()
-            .filter(book -> book.id() == id)
-            .findFirst();
+        return repository.findById(id)
+            .map(BookEntity::toBook);
     }
 }

@@ -26,6 +26,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import mx.losmergeados.recomendador.book.source.OpenLibraryBook;
 import mx.losmergeados.recomendador.book.source.OpenLibraryException;
 
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import static org.mockito.ArgumentMatchers.anyLong;
+import org.springframework.boot.test.mock.mockito.MockBean;
+
 /**
  * Pruebas de la capa web del catálogo de obras.
  *
@@ -38,6 +43,9 @@ class BookControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockBean
+    private BookRepository bookRepository;
 
     /* ---------- GET /api/books ---------- */
 
@@ -124,6 +132,44 @@ class BookControllerTest {
     }
 
     /* ---------- GET /api/books/{id} ---------- */
+
+    @BeforeEach
+    void setUp() {
+        List<BookEntity> books = List.of(
+                new BookEntity(1L, "El nombre del viento", "Patrick Rothfuss",
+                "Fantasía", Format.BOOK, PublicationStatus.ONGOING),
+                new BookEntity(2L, "Akira", "Katsuhiro Otomo",
+                "Ciencia ficción", Format.MANGA, PublicationStatus.COMPLETED),
+                new BookEntity(3L, "Watchmen", "Alan Moore",
+                "Superhéroes", Format.COMIC, PublicationStatus.COMPLETED),
+                new BookEntity(4L, "Dune", "Frank Herbert",
+                "Ciencia ficción", Format.BOOK, PublicationStatus.COMPLETED),
+                new BookEntity(5L, "Berserk", "Kentaro Miura",
+                "Fantasía oscura", Format.MANGA, PublicationStatus.ONGOING),
+                new BookEntity(6L, "Saga", "Brian K. Vaughan",
+                "Ciencia ficción", Format.COMIC, PublicationStatus.HIATUS),
+                new BookEntity(7L, "La sombra del viento", "Carlos Ruiz Zafón",
+                "Misterio", Format.BOOK, PublicationStatus.COMPLETED),
+                new BookEntity(8L, "Fullmetal Alchemist", "Hiromu Arakawa",
+                "Acción", Format.MANGA, PublicationStatus.COMPLETED),
+                new BookEntity(9L, "Cien años de soledad", "Gabriel García Márquez",
+                "Realismo mágico", Format.BOOK, PublicationStatus.COMPLETED),
+                new BookEntity(10L, "Death Note", "Tsugumi Ohba",
+                "Thriller", Format.MANGA, PublicationStatus.COMPLETED),
+                new BookEntity(11L, "One Piece", "Eiichiro Oda",
+                "Aventura", Format.MANGA, PublicationStatus.ONGOING)
+        );
+
+        when(bookRepository.findAll()).thenReturn(books);
+
+        when(bookRepository.findById(anyLong())).thenAnswer(invocation -> {
+                Long id = invocation.getArgument(0);
+
+                return books.stream()
+                .filter(book -> book.getId().equals(id))
+                .findFirst();
+        });
+        }
 
     @Test
     void obtenerObraExistente() throws Exception {
