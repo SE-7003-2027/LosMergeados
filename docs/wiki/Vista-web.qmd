@@ -1,0 +1,68 @@
+---
+title: "Vista web"
+---
+
+Una interfaz sencilla para explorar el catálogo. Se abre en <http://localhost:8080> cuando la aplicación está corriendo (ver [Instalación y ejecución](Instalacion-y-ejecucion)).
+
+No es la interfaz final: su objetivo es que el equipo pueda **ver los datos de prueba** de forma clara y servir de base para las pantallas del [PRD](PRD) (búsqueda, detalle, valoraciones y recomendaciones).
+
+## Qué se puede hacer
+
+| Control | Función |
+|---|---|
+| **Buscar** | Busca por título, autor o género en el backend (`GET /api/books?q=`). Ignora mayúsculas y acentos y espera 250 ms después del último teclazo antes de consultar |
+| **Formato** | Muestra todos, o solo libros, cómics o manga |
+| **Estatus** | Filtra por estatus de publicación |
+| **Agrupar por** | Organiza las tarjetas por género (por defecto), autor, estatus, o sin agrupar |
+
+Cada tarjeta muestra título, autor, género y dos etiquetas de color: formato y estatus. El borde superior de la tarjeta también cambia según el formato.
+
+## Detalle de una obra
+
+Al hacer clic en una tarjeta (o enfocarla con el teclado y presionar Enter) se abre una ventana con el detalle de la obra. Los datos **no se copian de la tarjeta**: se consultan de nuevo en `GET /api/books/{id}` y se muestra lo que responde el backend (título, autor, género, formato, estatus e identificador).
+
+- La URL cambia a `#obra/{id}`, así que el enlace se puede compartir o recargar y abre directamente el detalle.
+- Se cierra con el botón ×, con Esc, con un clic fuera de la ventana o con el botón "atrás" del navegador.
+- Mientras carga se muestran skeletons.
+- Si la obra no existe (`404`) o el identificador no es válido (`400`), se muestra "Obra no encontrada".
+- Si la API falla o no responde, se muestra un mensaje de error con un botón **Reintentar**.
+
+## Skeletons de carga
+
+Mientras el catálogo se descarga, la vista muestra tarjetas "fantasma" con un efecto de brillo en lugar de una pantalla en blanco. Cuando llegan los datos se reemplazan por las tarjetas reales.
+
+Con datos en memoria la respuesta es casi instantánea, así que la vista mantiene los skeletons **al menos 600 ms** (`MIN_SKELETON_MS` en `static/js/app.js`) para que se alcancen a ver. Cuando se conecte la base de datos ese valor se puede bajar o eliminar.
+
+Si el usuario tiene activada la opción de *reducir movimiento* en su sistema, el brillo animado se desactiva.
+
+## Otros estados
+
+Corresponden al requisito RF10 del [PRD](PRD) (estados diferenciados de carga, sin resultados y error):
+
+- **Cargando:** skeletons.
+- **Sin resultados:** aparece un mensaje cuando la búsqueda o los filtros no coinciden con ninguna obra; si hay texto de búsqueda, el mensaje lo menciona.
+- **Error:** si la API no responde, se muestra un mensaje con un botón **Reintentar**.
+
+## Diseño
+
+- Paleta cálida (crema, verde azulado y coral), con **modo oscuro automático** según la configuración del sistema.
+- Adaptable a celular, tablet y escritorio.
+- Colores por formato — Libro: verde azulado · Cómic: naranja · Manga: violeta.
+- Colores por estatus — En publicación: verde · Finalizado: azul · En pausa: ámbar · Cancelado: rojo.
+- Los colores están definidos como variables CSS al inicio de `static/css/styles.css`, así que cambiar la paleta es editar un solo bloque.
+
+## Archivos
+
+```text
+src/main/resources/static/
+├── index.html      Estructura de la página y ventana de detalle
+├── css/styles.css  Estilos, paleta y skeletons
+└── js/app.js       Carga de datos, búsqueda, filtros, agrupación, detalle y render
+```
+
+Los datos se insertan en la página con `textContent`, no con `innerHTML`, para evitar inyección de HTML cuando el catálogo venga de una base de datos o de fuentes externas.
+
+## Limitaciones actuales
+
+- La búsqueda y los filtros se resuelven en el backend (`?q=`, `?format=` y `?status=`, ver [API REST](API-REST)); solo la agrupación se hace en el navegador. Con un catálogo grande hará falta paginación.
+- No hay perfil de usuario, valoraciones ni recomendaciones personalizadas todavía.

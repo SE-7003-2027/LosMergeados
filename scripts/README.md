@@ -18,27 +18,54 @@ Las páginas se escriben en formato Quarto (`.qmd`), se convierten a Markdown (`
 ```text
 docs/
 └── wiki/
-    └── Home.qmd
+    ├── Home.qmd                          Portada de la Wiki
+    ├── _Sidebar.qmd                      Menú lateral
+    ├── PRD.qmd
+    ├── RFC.qmd
+    ├── Arquitectura.qmd
+    ├── Modelo-de-datos.qmd
+    ├── Decision-de-unificacion.qmd
+    ├── Evaluacion-de-tecnologias.qmd
+    ├── Fuentes-de-datos-y-APIs.qmd
+    ├── Algoritmos-de-recomendacion.qmd
+    ├── Prueba-tecnica-backend-framework.qmd
+    ├── Instalacion-y-ejecucion.qmd
+    ├── API-REST.qmd
+    ├── Vista-web.qmd
+    ├── Guia-de-colaboracion.qmd
+    └── Roadmap-de-sprints.qmd
 
 scripts/
 ├── README.md
 └── build-wiki.sh
 ```
 
+El nombre del archivo es el nombre de la página en la Wiki (los guiones se muestran como espacios). Los enlaces entre páginas usan ese nombre sin extensión, por ejemplo `[Arquitectura](Arquitectura)`.
+
 Los archivos `.qmd` son las fuentes que deben editarse. El Markdown generado se utiliza para publicar las páginas en la Wiki.
 
 ## Cómo agregar una página
 
-1. Crear un archivo `.qmd` dentro de `docs/wiki/`.
-2. Escribir el contenido usando Markdown y las opciones de Quarto necesarias.
-3. Revisar el contenido antes de publicarlo.
-4. Ejecutar el script desde la raíz del repositorio:
+1. Crear un archivo `.qmd` dentro de `docs/wiki/`, sin acentos ni espacios en el nombre (por ejemplo `Modelo-de-datos.qmd`).
+2. Iniciar el archivo con el encabezado YAML del título y escribir el contenido en Markdown. Quarto convierte el `title` en el encabezado principal de la página, así que no hace falta repetirlo con `#`:
+
+   ```markdown
+   ---
+   title: "Modelo de datos"
+   ---
+
+   ## Primera sección
+   ```
+
+3. Agregar la página a `Home.qmd` y a `_Sidebar.qmd`.
+4. Revisar el contenido antes de publicarlo (por Pull Request, en una rama `docs/...`).
+5. Después de integrar el cambio en `main`, ejecutar el script desde la raíz del repositorio:
 
 ```bash
 ./scripts/build-wiki.sh
 ```
 
-5. Verificar en GitHub que los cambios aparezcan en la Wiki.
+6. Verificar en GitHub que los cambios aparezcan en la Wiki.
 
 ## Cómo ejecutar el script
 

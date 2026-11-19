@@ -1,0 +1,70 @@
+---
+title: "Modelo de datos"
+---
+
+Por ahora existe una sola entidad, **Book**, que representa cualquier obra del catálogo: libro, cómic o manga. Está definida en `src/main/java/mx/losmergeados/recomendador/book/Book.java`.
+
+## Campos
+
+| Campo | Tipo | Descripción | Ejemplo |
+|---|---|---|---|
+| `id` | `Long` | Identificador único | `1` |
+| `title` | `String` | Título de la obra | `"Akira"` |
+| `author` | `String` | Autor o autora | `"Katsuhiro Otomo"` |
+| `genre` | `String` | Género principal | `"Ciencia ficción"` |
+| `format` | `Format` (enum) | Formato de la obra | `"MANGA"` |
+| `status` | `PublicationStatus` (enum) | Estatus de publicación | `"COMPLETED"` |
+
+## Valores de `format`
+
+| Valor | Se muestra como |
+|---|---|
+| `BOOK` | Libro |
+| `COMIC` | Cómic |
+| `MANGA` | Manga |
+
+## Valores de `status`
+
+| Valor | Se muestra como | Significado |
+|---|---|---|
+| `ONGOING` | En publicación | La obra sigue publicándose |
+| `COMPLETED` | Finalizado | La obra terminó |
+| `HIATUS` | En pausa | Publicación detenida temporalmente |
+| `CANCELLED` | Cancelado | La publicación se canceló |
+
+Si se agrega un valor nuevo hay que actualizarlo en el `enum` correspondiente (`Format.java` o `PublicationStatus.java`), en la vista (`static/js/app.js`) y en esta página.
+
+## Datos de demostración
+
+Combinan el catálogo de ejemplo de ambos equipos de origen.
+
+| # | Título | Autor | Género | Formato | Estatus |
+|---|---|---|---|---|---|
+| 1 | El nombre del viento | Patrick Rothfuss | Fantasía | BOOK | ONGOING |
+| 2 | Akira | Katsuhiro Otomo | Ciencia ficción | MANGA | COMPLETED |
+| 3 | Watchmen | Alan Moore | Superhéroes | COMIC | COMPLETED |
+| 4 | Dune | Frank Herbert | Ciencia ficción | BOOK | COMPLETED |
+| 5 | Berserk | Kentaro Miura | Fantasía oscura | MANGA | ONGOING |
+| 6 | Saga | Brian K. Vaughan | Ciencia ficción | COMIC | HIATUS |
+| 7 | La sombra del viento | Carlos Ruiz Zafón | Misterio | BOOK | COMPLETED |
+| 8 | Fullmetal Alchemist | Hiromu Arakawa | Acción | MANGA | COMPLETED |
+| 9 | Cien años de soledad | Gabriel García Márquez | Realismo mágico | BOOK | COMPLETED |
+| 10 | Death Note | Tsugumi Ohba | Thriller | MANGA | COMPLETED |
+| 11 | One Piece | Eiichiro Oda | Aventura | MANGA | ONGOING |
+
+> Estos datos son de prueba y viven en memoria (`BookCatalog.java`). No hay obras con estatus `CANCELLED` todavía.
+
+## Modelo objetivo
+
+El [SPIKE de fuentes de datos](Fuentes-de-datos-y-APIs) propone un modelo normalizado para que el sistema no dependa de la estructura de una API específica. Comparado con el modelo actual:
+
+| Campo propuesto | Estado actual |
+|---|---|
+| `id`, `title`, `type` | ✅ Existen (`type` = `format`) |
+| `authors`, `genres` | 🟡 Existen como un solo valor (`author`, `genre`); pasarán a listas |
+| `status` (estatus de publicación) | ✅ Existe (aportado por Equipo 7) |
+| `source`, `sourceId`, `sourceUrl`, `retrievedAt` | 📋 Al integrar fuentes externas |
+| `alternateTitles`, `artists`, `publisher`, `description`, `tags`, `coverUrl`, `language`, `publicationDate` | 📋 Al integrar fuentes externas |
+| `availability` (disponibilidad en México) | 📋 Solo cuando la fuente la proporcione (RF06) |
+
+Además faltan las entidades de **usuario**, **preferencias** y **valoración** (una valoración vigente por usuario y obra, según el [PRD](PRD)), necesarias para el motor de recomendaciones.

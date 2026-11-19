@@ -1,4 +1,6 @@
-## title: "Inicio"
+---
+title: "Inicio"
+---
 
 # Sistema de Recomendación de Libros, Cómics y Manga
 
@@ -6,27 +8,58 @@
 
 ## ¿De qué trata el proyecto?
 
-El proyecto busca desarrollar un sistema de recomendación de libros, cómics y manga disponibles en México, considerando las preferencias y valoraciones de los usuarios.
+El proyecto busca desarrollar un sistema de recomendación de libros, cómics y manga disponibles en México, considerando las preferencias y valoraciones de los usuarios. Las obras se pueden explorar y organizar por **autor**, **género** y **estatus de publicación** (en publicación, finalizado, en pausa, cancelado).
 
 ## Objetivo
 
 Definir y desarrollar progresivamente una solución que permita a los usuarios descubrir contenido que se adapte a sus intereses.
 
+## Origen del equipo
+
+LosMergeados se formó al unir a los integrantes que estaban trabajando en dos equipos que habían elegido el mismo proyecto: **Git-Wreckers** y **Equipo 7**. El repositorio parte de lo mejor de ambos: el código de Equipo 7 (Spring Boot) y la documentación de Git-Wreckers (PRD, RFC, arquitectura e investigación). Los detalles están en [Decisión de unificación](Decision-de-unificacion).
+
 ## Documentación del proyecto
 
-En esta Wiki se organizará la información relacionada con:
+### Requerimientos y diseño
 
-* **Equipo y organización:** integrantes, responsabilidades y colaboración.
-* **Requerimientos:** necesidades y funcionalidades del sistema.
-* **Diseño:** arquitectura, decisiones técnicas y componentes.
-* **Investigación:** fuentes de datos, APIs y algoritmos de recomendación.
+| Página | Para qué sirve |
+|---|---|
+| [PRD](PRD) | Qué debe hacer el sistema: requisitos, historias de usuario y prioridades |
+| [RFC](RFC) | Cómo se construye: decisiones técnicas |
+| [Arquitectura](Arquitectura) | Componentes del sistema y organización del código |
+| [Modelo de datos](Modelo-de-datos) | Qué información maneja una obra, hoy y a futuro |
+| [Decisión de unificación](Decision-de-unificacion) | Qué se tomó de cada equipo y por qué |
 
-La documentación se actualizará conforme avance el proyecto y se validen las decisiones del equipo.
+### Investigación (SPIKEs)
 
-### Consolidación de los proyectos anteriores
+| Página | Para qué sirve |
+|---|---|
+| [Evaluación de tecnologías](Evaluacion-de-tecnologias) | Alternativas de frontend, backend y base de datos |
+| [Fuentes de datos y APIs](Fuentes-de-datos-y-APIs) | De dónde obtener el catálogo y la disponibilidad en México |
+| [Algoritmos de recomendación](Algoritmos-de-recomendacion) | Basado en contenido, colaborativo e híbrido |
+| [Prueba técnica de framework](Prueba-tecnica-backend-framework) | Antecedente: Flask vs FastAPI |
 
-El [inventario y plan de consolidación](Consolidacion-de-avances) registra los avances de Git-Wreckers y Equipo 7, la integración existente en `Sprint4` y los pendientes asociados a la issue #3. Distingue el código presente en esa rama de lo que ya se incorporó a `main`.
+### Uso y desarrollo
+
+| Página | Para qué sirve |
+|---|---|
+| [Instalación y ejecución](Instalacion-y-ejecucion) | Levantar el proyecto desde cero |
+| [API REST](API-REST) | Endpoints disponibles |
+| [Vista web](Vista-web) | La interfaz para explorar el catálogo |
+| [Guía de colaboración](Guia-de-colaboracion) | Ramas, commits, Pull Requests y wiki |
+| [Roadmap de sprints](Roadmap-de-sprints) | Qué se ha hecho y qué sigue |
+| [Consolidación de avances](Consolidacion-de-avances) | Inventario de avances de ambos equipos y plan de consolidación |
+
+## Estado actual
+
+- ✅ Proyecto Spring Boot 3 + Maven con Java 21
+- ✅ API REST del catálogo: listado con filtros por formato y estatus, detalle por id y estado del servicio
+- ✅ Documentación interactiva de la API (Swagger UI)
+- ✅ Vista web con búsqueda, filtros, agrupación por autor, género y estatus, y skeletons de carga
+- ✅ Pruebas automatizadas (JUnit 5 + MockMvc)
+- ✅ PRD, RFC, arquitectura e investigación documentados
+- 📋 Base de datos, usuarios, valoraciones y motor de recomendaciones (próximos sprints)
 
 ## Repositorio
 
-El código fuente y los archivos de trabajo se encuentran en el repositorio de GitHub de LosMergeados.
+El código fuente y los archivos de trabajo se encuentran en el repositorio de GitHub de LosMergeados: <https://github.com/SE-7003-2027/LosMergeados>
