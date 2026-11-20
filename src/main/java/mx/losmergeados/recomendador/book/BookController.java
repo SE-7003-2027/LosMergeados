@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -109,4 +111,36 @@ public class BookController {
                         )
                 );
     }
+
+
+    /**
+     * Importa una obra seleccionada de Open Library al catálogo local.
+     */
+    @PostMapping("/import")
+    @Operation(
+        summary = "Importa una obra de Open Library",
+        description = "Guarda una obra externa en el catálogo local, asignándole formato y estatus."
+    )
+    public Book importBook(@RequestBody ImportBookRequest request) {
+        if (request == null) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "La solicitud de importación es obligatoria."
+            );
+        }
+
+        if (request.format() == null || request.status() == null) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "El formato y el estatus son obligatorios."
+            );
+        }
+
+        return catalog.importFromOpenLibrary(
+            request.book(),
+            request.format(),
+            request.status()
+        );
+    }
+
 }

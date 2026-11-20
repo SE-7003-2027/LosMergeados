@@ -1,20 +1,20 @@
 # LosMergeados
 
-Nombre del equipo: LosMergeados
+**Nombre del equipo:** LosMergeados
 
 ## Integrantes
 
-- Alair
-- Irving
+- Alair ?
+- Irving ?
 - Jimmy
-- Miguel
-- Pablo
+- Miguel ?
+- Pablo ?
 
 ## Descripción del proyecto
 
-Este proyecto consiste en desarrollar un sistema de recomendación de libros, cómics y manga disponibles en México.
+LosMergeados es un sistema de exploración y recomendación de libros, cómics y manga disponibles en México.
 
-La idea es que el sistema pueda utilizar información sobre las preferencias y valoraciones de los usuarios para generar recomendaciones que se adapten a sus intereses. Las obras se pueden explorar y organizar por **autor**, **género** y **estatus de publicación** (en publicación, finalizado, en pausa, cancelado).
+El objetivo es permitir que los usuarios descubran y organicen obras según sus preferencias, autores, géneros, formatos y estatus de publicación. A futuro, el sistema utilizará las preferencias y valoraciones de los usuarios para generar recomendaciones personalizadas.
 
 ## Objetivo
 
@@ -22,120 +22,219 @@ Desarrollar una aplicación capaz de proporcionar recomendaciones personalizadas
 
 ## Origen del proyecto
 
-LosMergeados se formó con los integrantes activos de dos equipos que habían elegido este mismo proyecto: **Git-Wreckers** y **Equipo 7**. Para no empezar de cero, el repositorio combina lo mejor de ambos:
+LosMergeados se formó con los integrantes activos de dos equipos que habían elegido este mismo proyecto: **Git-Wreckers** y **Equipo 7**.
 
-- **Código:** la base de Equipo 7 (Java + Spring Boot), con mejoras tomadas del backend de Git-Wreckers (capa de servicio, detalle por id, filtros y estado del servicio).
+Para no empezar de cero, el repositorio combina lo mejor de ambos:
+
+- **Código:** la base de Equipo 7 (Java + Spring Boot), con mejoras tomadas del backend de Git-Wreckers.
 - **Documentación:** la de Git-Wreckers (PRD, RFC, arquitectura e investigación), actualizada y complementada con la de Equipo 7.
 
 El detalle está en la página de la wiki [Decisión de unificación](docs/wiki/Decision-de-unificacion.qmd).
 
 ## Estado del proyecto
 
-- ✅ Proyecto Spring Boot 3 + Maven con Java 21
-- ✅ API REST del catálogo con datos de prueba en memoria
-- ✅ Documentación interactiva de la API (Swagger UI)
-- ✅ Vista web para explorar el catálogo
-- ✅ Pruebas automatizadas
-- ✅ PRD, RFC, arquitectura e investigación documentados en la wiki
-- 📋 Base de datos, usuarios, valoraciones y motor de recomendaciones (próximos sprints)
+El proyecto cuenta actualmente con:
+
+- ✅ Aplicación Spring Boot 3 con Java 21.
+- ✅ API REST para consultar, filtrar, buscar e importar obras.
+- ✅ Persistencia mediante PostgreSQL y Spring Data JPA.
+- ✅ Base de datos alojada en Neon.
+- ✅ Integración con Open Library para consultar obras externas.
+- ✅ Importación de obras externas al catálogo local.
+- ✅ Prevención de importaciones duplicadas mediante identificadores de origen.
+- ✅ Interfaz web para explorar y organizar el catálogo.
+- ✅ Vista de detalle de las obras.
+- ✅ Documentación interactiva de la API mediante Swagger UI.
+- ✅ Pruebas automatizadas.
+
+Las funcionalidades de usuarios, valoraciones y recomendaciones personalizadas continúan pendientes.
 
 ## Funcionalidades
 
-Se van marcando conforme se completan (prioridades del [PRD](docs/wiki/PRD.qmd)).
+Se marcan conforme se completan, tomando como referencia el [PRD](docs/wiki/PRD.qmd).
 
-- [x] Catálogo de obras con formato y estatus de publicación
-- [x] Exploración con filtros y organización por autor, género y estatus (vista web)
-- [x] Detalle de una obra por API
-- [ ] Registro e inicio de sesión
-- [x] Búsqueda de obras desde el servidor
-- [x] Detalle de una obra desde la vista web
-- [ ] Valoración de obras e historial de valoraciones
-- [ ] Recomendaciones personalizadas basadas en contenido
-- [ ] Información de disponibilidad en México a partir de fuentes externas
+- [x] Catálogo de obras con formato y estatus de publicación.
+- [x] Exploración mediante filtros y búsqueda.
+- [x] Organización por autor, género y estatus.
+- [x] Detalle de una obra desde la API y la vista web.
+- [x] Búsqueda de obras en el catálogo local.
+- [x] Búsqueda de obras externas mediante Open Library.
+- [x] Importación de obras externas al catálogo.
+- [x] Persistencia de información en PostgreSQL.
+- [x] Prevención de obras duplicadas mediante su identificador de origen.
+- [ ] Registro e inicio de sesión.
+- [ ] Valoración de obras e historial de valoraciones.
+- [ ] Recomendaciones personalizadas basadas en contenido.
+- [ ] Información de disponibilidad en México a partir de fuentes externas.
 
-## Stack
+## Stack tecnológico
 
 | Capa | Tecnología | Estado |
 |---|---|---|
-| Backend | Java 21 + Spring Boot 3 (Spring Web) | ✅ Implementado |
-| Frontend | HTML + CSS + JavaScript servidos por Spring Boot | ✅ Implementado |
-| Documentación de API | OpenAPI / Swagger UI (springdoc) | ✅ Implementado |
-| Gestor de dependencias | Maven (wrapper incluido) | ✅ Implementado |
-| Pruebas | JUnit 5 + MockMvc | ✅ Implementado |
-| Documentación | Quarto + Wiki de GitHub | ✅ Implementado |
-| Base de datos | PostgreSQL 16 | 📋 Planificado |
-| Persistencia | Spring Data JPA | 📋 Planificado |
-| Seguridad | Spring Security | 📋 Planificado |
-| Recomendaciones | Filtrado basado en contenido | 📋 Planificado |
-| Contenedores | Docker + Docker Compose | 📋 Planificado |
-| CI | GitHub Actions | 📋 Planificado |
+| Backend | Java 21 + Spring Boot 3 | Implementado |
+| API REST | Spring Web | Implementado |
+| Persistencia | Spring Data JPA | Implementado |
+| Base de datos | PostgreSQL (Neon) | Implementado |
+| Integración externa | Open Library API | Implementado |
+| Frontend | HTML + CSS + JavaScript | Implementado |
+| Documentación de API | OpenAPI / Swagger UI | Implementado |
+| Gestor de dependencias | Maven Wrapper | Implementado |
+| Pruebas | JUnit 5 + Mockito + MockMvc | Implementado |
+| Documentación | Quarto + GitHub Wiki | Implementado |
+| Seguridad | Spring Security | Pendiente |
+| Recomendaciones | Filtrado basado en contenido | Pendiente |
+| Contenedores | Docker + Docker Compose | Pendiente |
+| CI | GitHub Actions | Pendiente |
 
 ## Cómo ejecutar el proyecto
 
 ### Requisitos previos
 
-- Java 21 (JDK)
-- Git
+- Java 21 (JDK).
+- Git.
+- Acceso a la base de datos PostgreSQL de Neon.
+- Variables de entorno para la conexión a la base de datos.
 
-> Maven no hace falta instalarlo (se usa `./mvnw`). Docker y PostgreSQL **no son necesarios todavía**: por ahora la aplicación usa datos en memoria.
+No es necesario instalar Maven: el proyecto incluye Maven Wrapper.
 
-### Pasos
+### 1. Clonar el repositorio
 
 ```bash
 git clone https://github.com/SE-7003-2027/LosMergeados.git
 cd LosMergeados
+```
+
+### 2. Configurar la conexión a PostgreSQL
+
+La aplicación utiliza variables de entorno para conectarse a Neon. Antes de iniciarla, configura:
+
+```bash
+export DB_URL='jdbc:postgresql://HOST/DATABASE?sslmode=require'
+export DB_USERNAME='USUARIO'
+export DB_PASSWORD='CONTRASEÑA'
+```
+
+Sustituye los valores de ejemplo por los datos de conexión de tu propia instancia de Neon.
+
+**Importante:** no guardes credenciales reales en el repositorio ni las incluyas en commits. Utiliza variables de entorno para mantenerlas fuera del código fuente.
+
+### 3. Ejecutar la aplicación
+
+```bash
 ./mvnw spring-boot:run
 ```
 
-En Windows: `.\mvnw.cmd spring-boot:run`
+En Windows:
 
-| URL | Qué encuentras |
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+Una vez iniciada, la aplicación estará disponible en:
+
+| URL | Descripción |
 |---|---|
-| <http://localhost:8080> | Vista web del catálogo |
-| <http://localhost:8080/swagger-ui.html> | Documentación interactiva de la API |
-| <http://localhost:8080/api/books> | Catálogo en JSON |
+| http://localhost:8080/ | Interfaz web del catálogo |
+| http://localhost:8080/swagger-ui.html | Documentación interactiva de la API |
+| http://localhost:8080/api/books | Catálogo en formato JSON |
+| http://localhost:8080/api/health | Estado del servicio |
 
-### Endpoints disponibles
+## Endpoints disponibles
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/api/books` | Lista y busca en el catálogo; parámetros opcionales `?q=texto` (título, autor o género), `?format=BOOK\|COMIC\|MANGA` y `?status=ONGOING\|COMPLETED\|HIATUS\|CANCELLED` |
-| GET | `/api/books/external` | Busca obras en Open Library por título (`?title=`) |
-| GET | `/api/books/{id}` | Detalle de una obra (`404` si no existe) |
-| GET | `/api/health` | Estado del servicio |
+| GET | `/api/books` | Lista y busca obras del catálogo local. |
+| GET | `/api/books/external?title=` | Busca obras externas en Open Library por título. |
+| GET | `/api/books/{id}` | Consulta el detalle de una obra local. |
+| POST | `/api/books/import` | Importa una obra de Open Library al catálogo local. |
+| GET | `/api/health` | Consulta el estado del servicio. |
 
-### Correr las pruebas
+### Parámetros de búsqueda del catálogo
+
+El endpoint `GET /api/books` acepta los siguientes parámetros opcionales:
+
+| Parámetro | Descripción | Valores |
+|---|---|---|
+| `q` | Busca por título, autor o género. | Texto libre |
+| `format` | Filtra por formato. | `BOOK`, `COMIC`, `MANGA` |
+| `status` | Filtra por estatus de publicación. | `ONGOING`, `COMPLETED`, `HIATUS`, `CANCELLED` |
+
+Ejemplo:
+
+```text
+GET /api/books?format=MANGA&status=ONGOING&q=One%20Piece
+```
+
+### Importación de obras
+
+La importación recibe una obra obtenida de Open Library, junto con el formato y el estatus seleccionados por el usuario.
+
+Ejemplo de solicitud:
+
+```json
+{
+  "book": {
+    "sourceId": "/works/OL8215661W",
+    "title": "ONE PIECE 1",
+    "authors": ["Eiichiro Oda"],
+    "subjects": [],
+    "firstPublishYear": 1997,
+    "coverUrl": null,
+    "sourceUrl": "https://openlibrary.org/works/OL8215661W"
+  },
+  "format": "MANGA",
+  "status": "ONGOING"
+}
+```
+
+La aplicación utiliza el identificador de Open Library (`sourceId`) para evitar importar varias veces la misma obra.
+
+## Ejecutar las pruebas
+
+Para ejecutar todas las pruebas automatizadas:
 
 ```bash
-./mvnw test
+./mvnw clean test
 ```
+
+Las pruebas verifican el comportamiento de los controladores, la lógica del catálogo y las operaciones relacionadas con la importación de obras.
 
 ## Estructura del repositorio
 
 ```text
 .
 ├── README.md
-├── CONTRIBUTING.md                     Resumen de reglas de colaboración
-├── pom.xml                             Dependencias y build (Maven)
-├── mvnw, mvnw.cmd, .mvn/               Maven Wrapper
+├── CONTRIBUTING.md
+├── pom.xml
+├── mvnw
+├── mvnw.cmd
+├── .mvn/
 ├── src/
-│   ├── main/java/mx/losmergeados/recomendador/
-│   │   ├── RecomendadorApplication.java
-│   │   ├── book/                       Catálogo: modelo, servicio y API
-│   │   └── health/                     Estado del servicio
-│   ├── main/resources/
-│   │   ├── application.properties
-│   │   └── static/                     Vista web (index.html, css/, js/)
-│   └── test/java/...                   Pruebas
+│   ├── main/
+│   │   ├── java/mx/losmergeados/recomendador/
+│   │   │   ├── RecomendadorApplication.java
+│   │   │   ├── book/
+│   │   │   │   ├── source/
+│   │   │   │   └── ...
+│   │   │   └── health/
+│   │   └── resources/
+│   │       ├── application.properties
+│   │       └── static/
+│   │           ├── index.html
+│   │           ├── css/
+│   │           └── js/
+│   └── test/
+│       └── java/
 ├── docs/
-│   └── wiki/                           Fuentes .qmd de la Wiki
+│   └── wiki/
 └── scripts/
-    ├── README.md                       Cómo publicar la Wiki
+    ├── README.md
     └── build-wiki.sh
 ```
 
 ## Organización del proyecto
 
-- La documentación del proyecto (requerimientos, decisiones de diseño, investigación y guías) se escribe en `docs/wiki/` y se publica en la [Wiki](https://github.com/SE-7003-2027/LosMergeados/wiki) con `./scripts/build-wiki.sh` (ver [`scripts/README.md`](scripts/README.md)).
+- La documentación del proyecto (requerimientos, decisiones de diseño, investigación y guías) se escribe en `docs/wiki/` y se publica en la [Wiki de GitHub](https://github.com/SE-7003-2027/LosMergeados/wiki).
+- Para publicar la Wiki se utiliza `./scripts/build-wiki.sh`. Consulta [`scripts/README.md`](scripts/README.md).
 - Las historias de usuario y tareas se gestionan con GitHub Issues y GitHub Projects.
 - Las reglas de ramas, commits y Pull Requests están en [`CONTRIBUTING.md`](CONTRIBUTING.md) y en la [Guía de colaboración](docs/wiki/Guia-de-colaboracion.qmd).

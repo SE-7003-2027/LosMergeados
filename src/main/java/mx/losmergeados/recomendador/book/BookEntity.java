@@ -4,7 +4,15 @@ package mx.losmergeados.recomendador.book;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "books")
+@Table(
+    name = "books",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "uk_books_source_id",
+            columnNames = "source_id"
+        )
+    }
+)
 public class BookEntity {
 
     @Id
@@ -28,6 +36,9 @@ public class BookEntity {
     @Column(nullable = false)
     private PublicationStatus status;
 
+    @Column(name = "source_id", unique = true)
+    private String sourceId;
+
     protected BookEntity() {
     }
 
@@ -38,11 +49,35 @@ public class BookEntity {
             Format format,
             PublicationStatus status) {
 
+        this(title, author, genre, format, status, null);
+    }
+
+    public BookEntity(
+            String title,
+            String author,
+            String genre,
+            Format format,
+            PublicationStatus status,
+            String sourceId) {
+
         this.title = title;
         this.author = author;
         this.genre = genre;
         this.format = format;
         this.status = status;
+        this.sourceId = sourceId;
+    }
+
+    BookEntity(
+            Long id,
+            String title,
+            String author,
+            String genre,
+            Format format,
+            PublicationStatus status) {
+
+        this(title, author, genre, format, status);
+        this.id = id;
     }
 
     public Book toBook() {
@@ -55,8 +90,6 @@ public class BookEntity {
             status
         );
     }
-
-    // Getters
 
     public Long getId() {
         return id;
@@ -82,20 +115,7 @@ public class BookEntity {
         return status;
     }
 
-        BookEntity(
-            Long id,
-            String title,
-            String author,
-            String genre,
-            Format format,
-            PublicationStatus status) {
-
-        this.id = id;
-        this.title = title;
-        this.author = author;
-        this.genre = genre;
-        this.format = format;
-        this.status = status;
+    public String getSourceId() {
+        return sourceId;
     }
 }
-

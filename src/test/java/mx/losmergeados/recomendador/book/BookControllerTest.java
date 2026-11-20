@@ -9,6 +9,10 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
 import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +21,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 import mx.losmergeados.recomendador.book.source.OpenLibraryBook;
 import mx.losmergeados.recomendador.book.source.OpenLibraryException;
@@ -410,4 +416,113 @@ class BookControllerTest {
 
     @MockBean
     private mx.losmergeados.recomendador.book.source.OpenLibraryClient openLibraryClient;
-}
+
+    /* ---------- POST /api/books/import ---------- */
+
+        @Test
+        void importarObraDesdeOpenLibrary_debeRetornarObraGuardada()
+                throws Exception {
+
+        BookEntity savedBook = new BookEntity(
+                12L,
+                "The Hobbit",
+                "J. R. R. Tolkien",
+                "Fantasy",
+                Format.BOOK,
+                PublicationStatus.COMPLETED
+        );
+
+        when(bookRepository.findBySourceId("/works/OL123W"))
+                .thenReturn(Optional.empty());
+
+        when(bookRepository.save(any(BookEntity.class)))
+                .thenReturn(savedBook);
+
+        String json = """
+                {
+                        "book": {
+                        "sourceId": "/works/OL123W",
+                        "title": "The Hobbit",
+                        "authors": ["J. R. R. Tolkien"],
+                        "subjects": ["Fantasy", "Adventure"],
+                        "firstPublishYear": 1937,
+                        "coverUrl": "https://covers.openlibrary.org/b/id/123-M.jpg",
+                        "sourceUrl": "https://openlibrary.org/works/OL123W"
+                        },
+                        "format": "BOOK",
+                        "status": "COMPLETED"
+                }
+                """;
+
+        mockMvc.perform(post("/api/books/import")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(12))
+                .andExpect(jsonPath("$.title").value("The Hobbit"))
+                .andExpect(jsonPath("$.author").value("J. R. R. Tolkien"))
+                .andExpect(jsonPath("$.genre").value("Fantasy"))
+                .andExpect(jsonPath("$.format").value("BOOK"))
+                .andExpect(jsonPath("$.status").value("COMPLETED"));
+
+        verify(bookRepository).save(any(BookEntity.class));
+        }
+
+        @Test
+        void importarObraSinFormato_debeRetornar400() throws Exception {
+
+        String json = """
+                {
+                        "book": {
+                        "sourceId": "/works/OL123W",
+                        "title": "The Hobbit",
+                        "authors": ["J. R. R. Tolkien"],
+                        "subjects": ["Fantasy"]
+                        },
+                        "status": "COMPLETED"
+                }
+                """;
+
+        mockMvc.perform(post("/api/books/import")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isBadRequest());
+
+        verify(bookRepository, never()).save(any(BookEntity.class));
+        }
+
+        @Test
+                void importarObraSinEstatus_debeRetornar400() throws Exception {
+
+                String json = """
+                        {
+                                "book": {
+                                "sourceId": "/works/OL123W",
+                                "title": "The Hobbit",
+                                "authors": ["J. R. R. Tolkien"],
+                                "subjects": ["Fantasy"]
+                                },
+                                "format": "BOOK"
+                        }
+                        """;
+
+                mockMvc.perform(post("/api/books/import")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json))
+                        .andExpect(status().isBadRequest());
+
+                verify(bookRepository, never()).save(any(BookEntity.class));
+        }
+
+        @Test
+                void importarObraConSolicitudVacia_debeRetornar400()
+                        throws Exception {
+
+                mockMvc.perform(post("/api/books/import")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{}"))
+                        .andExpect(status().isBadRequest());
+
+                verify(bookRepository, never()).save(any(BookEntity.class));
+                }
+        }

@@ -44,7 +44,41 @@
             </label>
         </section>
 
+        <p class="summary" id="summary" role="status" aria-live="polite">
+        <section class="external-search" aria-labelledby="external-heading">
+            <div class="external-search-header">
+                <div>
+                    <h2 id="external-heading">Descubrir nuevas lecturas</h2>
+                    <p>Busca libros, cómics y manga en Open Library para agregarlos a tu catálogo.</p>
+                </div>
+            </div>
+
+            <form id="external-search-form" class="external-search-form">
+                <label class="field field-search">
+                    <span class="field-label">Buscar en Open Library</span>
+                    <input
+                        id="external-title"
+                        type="search"
+                        placeholder="Ej. The Hobbit, Berserk, Watchmen…"
+                        autocomplete="off"
+                        required
+                    >
+                </label>
+
+                <button class="btn" id="external-search-button" type="submit">
+                    Buscar obras
+                </button>
+            </form>
+
+            <p id="external-search-status" class="external-status"
+               role="status" aria-live="polite"></p>
+
+            <div id="external-results" class="external-results"
+                 aria-busy="false"></div>
+        </section>
+
         <p class="summary" id="summary" role="status" aria-live="polite"></p>
+ </p>
 
         <div id="content" aria-busy="true"></div>
     </main>
@@ -59,7 +93,7 @@
 
     <footer class="footer">
         <div class="container">
-            <p>Datos de demostración en memoria · La base de datos se conectará en un próximo sprint.</p>
+            <p>Catálogo conectado a PostgreSQL · Búsqueda externa mediante Open Library.</p>
             <p><a href="https://github.com/SE-7003-2027/LosMergeados">Repositorio en GitHub</a> · <a href="/api/books">API JSON</a> · <a href="/swagger-ui.html">Documentación de la API</a></p>
         </div>
     </footer>
