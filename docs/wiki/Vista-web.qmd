@@ -4,7 +4,7 @@ title: "Vista web"
 
 Una interfaz sencilla para explorar el catálogo. Se abre en <http://localhost:8080> cuando la aplicación está corriendo (ver [Instalación y ejecución](Instalacion-y-ejecucion)).
 
-No es la interfaz final: su objetivo es que el equipo pueda **ver los datos de prueba** de forma clara y servir de base para las pantallas del [PRD](PRD) (búsqueda, detalle, valoraciones y recomendaciones).
+La interfaz consume la API REST del backend y permite explorar las obras almacenadas en PostgreSQL, además de consultar resultados externos de Open Library. Su objetivo actual es proporcionar una interfaz funcional para el catálogo y servir como base para las pantallas previstas en el [PRD](PRD) (búsqueda, detalle, valoraciones y recomendaciones).
 
 ## Qué se puede hacer
 
@@ -14,6 +14,8 @@ No es la interfaz final: su objetivo es que el equipo pueda **ver los datos de p
 | **Formato** | Muestra todos, o solo libros, cómics o manga |
 | **Estatus** | Filtra por estatus de publicación |
 | **Agrupar por** | Organiza las tarjetas por género (por defecto), autor, estatus, o sin agrupar |
+
+La búsqueda y los filtros se realizan sobre el catálogo persistido en PostgreSQL. La agrupación de los resultados se realiza en el navegador.
 
 Cada tarjeta muestra título, autor, género y dos etiquetas de color: formato y estatus. El borde superior de la tarjeta también cambia según el formato.
 
@@ -27,11 +29,21 @@ Al hacer clic en una tarjeta (o enfocarla con el teclado y presionar Enter) se a
 - Si la obra no existe (`404`) o el identificador no es válido (`400`), se muestra "Obra no encontrada".
 - Si la API falla o no responde, se muestra un mensaje de error con un botón **Reintentar**.
 
+## Búsqueda externa
+
+Además del catálogo local, el backend permite consultar obras directamente en Open Library mediante `GET /api/books/external?title=...`.
+
+Los resultados externos se muestran como resultados de búsqueda independientes del catálogo local. Cuando el usuario selecciona una obra externa, puede enviarla al backend para incorporarla al catálogo mediante `POST /api/books/import`.
+
+La importación permite seleccionar el formato y el estatus de la obra. El backend guarda la información correspondiente en PostgreSQL y utiliza el identificador de Open Library (`sourceId`) para evitar importar dos veces la misma obra.
+
+La interfaz de búsqueda externa y la importación forman parte de la integración actual con Open Library; las recomendaciones personalizadas y otras funciones de usuario siguen siendo trabajo futuro.
+
 ## Skeletons de carga
 
 Mientras el catálogo se descarga, la vista muestra tarjetas "fantasma" con un efecto de brillo en lugar de una pantalla en blanco. Cuando llegan los datos se reemplazan por las tarjetas reales.
 
-Con datos en memoria la respuesta es casi instantánea, así que la vista mantiene los skeletons **al menos 600 ms** (`MIN_SKELETON_MS` en `static/js/app.js`) para que se alcancen a ver. Cuando se conecte la base de datos ese valor se puede bajar o eliminar.
+Los skeletons se utilizan para representar visualmente el estado de carga mientras la aplicación consulta el backend y obtiene los resultados del catálogo o de una búsqueda externa.
 
 Si el usuario tiene activada la opción de *reducir movimiento* en su sistema, el brillo animado se desactiva.
 
@@ -60,9 +72,19 @@ src/main/resources/static/
 └── js/app.js       Carga de datos, búsqueda, filtros, agrupación, detalle y render
 ```
 
-Los datos se insertan en la página con `textContent`, no con `innerHTML`, para evitar inyección de HTML cuando el catálogo venga de una base de datos o de fuentes externas.
+Los datos se insertan en la página con `textContent`, no con `innerHTML`, para evitar inyección de HTML cuando el catálogo provenga de la base de datos o de fuentes externas.
 
 ## Limitaciones actuales
 
 - La búsqueda y los filtros se resuelven en el backend (`?q=`, `?format=` y `?status=`, ver [API REST](API-REST)); solo la agrupación se hace en el navegador. Con un catálogo grande hará falta paginación.
-- No hay perfil de usuario, valoraciones ni recomendaciones personalizadas todavía.
+- La búsqueda externa depende actualmente de Open Library y todavía no existe una estrategia general de integración con múltiples fuentes externas.
+- No hay perfil de usuario, registro, inicio de sesión, valoraciones ni recomendaciones personalizadas todavía.
+- La disponibilidad de las obras en México todavía no está integrada al catálogo.
+- La persistencia actual utiliza Hibernate con `spring.jpa.hibernate.ddl-auto=update`; la migración a un esquema administrado mediante Flyway está pendiente.
+```
+
+Aquí hice un cambio importante respecto al documento anterior: **ya no dice que la vista usa datos en memoria ni que los skeletons están ahí porque la respuesta es demasiado rápida**. Eso ya no describe el estado actual del proyecto.
+
+También añadí la parte de **Open Library → importar → PostgreSQL**, porque ahora sí es una funcionalidad real de la aplicación y debería aparecer en `Vista-web.qmd`. La parte de Flyway la dejé como limitación/pendiente, sin presentarla como implementada.
+
+Después de este, yo seguiría con `Home.qmd` o `Consolidacion-de-avances.qmd`, porque ahí probablemente también haya referencias al estado anterior del proyecto que conviene limpiar antes de hacer el commit de documentación.

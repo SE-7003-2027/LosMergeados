@@ -6,10 +6,37 @@ title: "Instalación y ejecución"
 
 - **Java 21** (JDK)
 - **Git**
+- Acceso a la base de datos PostgreSQL utilizada por el proyecto, alojada en **Neon**
 
-Maven no hace falta instalarlo: el repositorio incluye el *wrapper* (`mvnw`). Docker y PostgreSQL **todavía no son necesarios**, porque los datos viven en memoria.
+Maven no hace falta instalarlo: el repositorio incluye el *wrapper* (`mvnw`).
+
+No es necesario instalar PostgreSQL ni Docker localmente para ejecutar la configuración actual, ya que la aplicación se conecta a la instancia PostgreSQL administrada en Neon.
 
 Para publicar la wiki también se necesita **Quarto** (ver `scripts/README.md`).
+
+## Configuración de la base de datos
+
+La aplicación obtiene los datos de conexión mediante variables de entorno. Esto evita guardar las credenciales de PostgreSQL directamente en el repositorio.
+
+Antes de ejecutar la aplicación, configura:
+
+```bash id="2j7x9f"
+export DB_URL='jdbc:postgresql://HOST/DATABASE?sslmode=require'
+export DB_USERNAME='USUARIO'
+export DB_PASSWORD='CONTRASEÑA'
+```
+
+Los valores de `HOST`, `DATABASE`, `USUARIO` y `CONTRASEÑA` corresponden a la instancia PostgreSQL del proyecto.
+
+**No se deben agregar las credenciales reales al código fuente, a `application.properties` ni a commits del repositorio.**
+
+La aplicación utiliza estas variables en `src/main/resources/application.properties`:
+
+```properties id="v7k2qa"
+spring.datasource.url=${DB_URL}
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
+```
 
 ## Pasos
 
@@ -20,22 +47,58 @@ Para publicar la wiki también se necesita **Quarto** (ver `scripts/README.md`).
    cd LosMergeados
    ```
 
-2. Levanta la aplicación:
+2. Configura las variables de entorno de la base de datos:
+
+   ```bash
+   export DB_URL='jdbc:postgresql://HOST/DATABASE?sslmode=require'
+   export DB_USERNAME='USUARIO'
+   export DB_PASSWORD='CONTRASEÑA'
+   ```
+
+   En Windows PowerShell se pueden definir con:
+
+   ```powershell
+   $env:DB_URL="jdbc:postgresql://HOST/DATABASE?sslmode=require"
+   $env:DB_USERNAME="USUARIO"
+   $env:DB_PASSWORD="CONTRASEÑA"
+   ```
+
+3. Levanta la aplicación:
 
    ```bash
    ./mvnw spring-boot:run
    ```
 
-   En Windows con PowerShell o CMD: `.\mvnw.cmd spring-boot:run`
+   En Windows con PowerShell o CMD:
 
-3. Abre en el navegador:
+   ```text
+   .\mvnw.cmd spring-boot:run
+   ```
+
+4. Abre en el navegador:
 
    | URL | Qué encuentras |
    |---|---|
-   | <http://localhost:8080> | La [vista web](Vista-web) |
-   | <http://localhost:8080/api/books> | El JSON del catálogo ([API REST](API-REST)) |
-   | <http://localhost:8080/swagger-ui.html> | Documentación interactiva de la API |
-   | <http://localhost:8080/api/health> | Estado del servicio |
+   | `http://localhost:8080` | La [vista web](Vista-web) |
+   | `http://localhost:8080/api/books` | El JSON del catálogo ([API REST](API-REST)) |
+   | `http://localhost:8080/swagger-ui.html` | Documentación interactiva de la API |
+   | `http://localhost:8080/api/health` | Estado del servicio |
+
+## Persistencia
+
+Al iniciar la aplicación, Spring Boot establece la conexión con PostgreSQL mediante Spring Data JPA e Hibernate.
+
+El esquema actual de la base de datos es administrado por Hibernate mediante:
+
+```properties id="0w4r9c"
+spring.jpa.hibernate.ddl-auto=update
+```
+
+Por lo tanto, las entidades JPA necesarias se crean o actualizan automáticamente al iniciar la aplicación.
+
+La base de datos utilizada por el proyecto es persistente: los datos del catálogo no desaparecen al detener o reiniciar la aplicación.
+
+Posteriormente se planea sustituir esta gestión automática del esquema por **Flyway**, utilizando migraciones versionadas.
 
 ## Correr las pruebas
 
@@ -45,6 +108,8 @@ Para publicar la wiki también se necesita **Quarto** (ver `scripts/README.md`).
 
 Corre las pruebas antes de abrir un Pull Request (ver [Guía de colaboración](Guia-de-colaboracion)).
 
+Las pruebas no deben depender de credenciales reales de la base de datos ni de datos que solamente existan en la instancia de producción.
+
 ## Problemas frecuentes
 
 | Síntoma | Causa probable | Solución |
@@ -52,4 +117,7 @@ Corre las pruebas antes de abrir un Pull Request (ver [Guía de colaboración](G
 | `Port 8080 was already in use` | Otro proceso usa el puerto | Cierra ese proceso o cambia `server.port` en `src/main/resources/application.properties` |
 | `invalid target release: 21` | El JDK activo es anterior a 21 | Instala JDK 21 y revisa `java -version` |
 | `./mvnw: Permission denied` | El script perdió el permiso de ejecución | `chmod +x mvnw` (o `git update-index --chmod=+x mvnw` para guardarlo en Git) |
+| Error de conexión con PostgreSQL | Falta alguna variable de entorno o sus valores son incorrectos | Revisa `DB_URL`, `DB_USERNAME` y `DB_PASSWORD` |
+| `password authentication failed` | Las credenciales de PostgreSQL son incorrectas | Verifica las credenciales de la instancia de Neon |
+| `Connection refused` o error de conexión a la base de datos | La URL de conexión es incorrecta o la base de datos no está disponible | Revisa `DB_URL` y el estado de la instancia de Neon |
 | La vista muestra "No pudimos cargar el catálogo" | La app no está corriendo o falló al arrancar | Revisa la terminal donde ejecutaste `spring-boot:run` |

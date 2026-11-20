@@ -212,8 +212,9 @@ Actualmente se requieren:
 * Resolución de conversaciones de revisión.
 * Aprobación de la versión más reciente del cambio.
 
-El revisor del Pull Request se asignará de acuerdo con la disponibilidad del integrante del equipo. La asignación de un revisor no implica que el Pull Request pueda integrarse automáticamente; para cumplir la protección de main deben obtenerse las aprobaciones requeridas por la configuración del repositorio.
-Las reglas de protección de main tienen como objetivo asegurar que los cambios sean revisados antes de formar parte de la rama principal.
+El revisor del Pull Request se asignará de acuerdo con la disponibilidad del integrante del equipo. La asignación de un revisor no implica que el Pull Request pueda integrarse automáticamente; para cumplir la protección de `main` deben obtenerse las aprobaciones requeridas por la configuración del repositorio.
+
+Las reglas de protección de `main` tienen como objetivo asegurar que los cambios sean revisados antes de formar parte de la rama principal.
 
 ### Qué revisa el revisor
 
@@ -221,6 +222,8 @@ Las reglas de protección de main tienen como objetivo asegurar que los cambios 
 * Que las pruebas existentes pasen (`./mvnw test`).
 * Que la rama esté limpia y actualizada con `main`.
 * Que, si se propone un cambio de algoritmo o diseño, se indiquen fuentes, pros y contras.
+* Que los cambios de configuración no expongan contraseñas, tokens, claves privadas u otros secretos.
+* Que los cambios de documentación correspondan al estado actual del proyecto.
 
 Se procura responder rápido a los cambios nuevos para no bloquear a quien abrió el Pull Request.
 
@@ -228,7 +231,6 @@ Se procura responder rápido a los cambios nuevos para no bloquear a quien abri�
 
 * **Request changes:** el Pull Request no se puede integrar hasta resolver esos cambios (rompe pruebas, rompe el sistema o no está actualizado con `main`).
 * **Comment:** observaciones que no bloquean la integración (typos, estilo de código, documentación menor, ajustes mínimos de interfaz).
-
 
 ---
 
@@ -296,16 +298,23 @@ También se deben ejecutar las pruebas del proyecto:
 ./mvnw test
 ```
 
-En Windows: `.\mvnw.cmd test`.
+En Windows:
+
+```powershell
+.\mvnw.cmd test
+```
 
 Además, el Pull Request debe:
 
 * Enfocarse en un solo bug o funcionalidad; los cambios extra van en su propio commit u otro Pull Request.
-* Incluir pruebas para la funcionalidad nueva, que el revisor pueda replicar.
+* Incluir pruebas para la funcionalidad nueva cuando corresponda, de forma que el revisor pueda replicarla.
 * Vincular el Issue que resuelve.
 * Actualizar el README y la wiki si el cambio lo requiere.
+* No incluir secretos, credenciales ni configuraciones locales que no deban formar parte del repositorio.
 
 Si existen archivos generados automáticamente, temporales o cambios que no pertenecen a la tarea, no deben incluirse en el commit.
+
+Cuando el cambio dependa de servicios externos, como la base de datos PostgreSQL/Neon o una API externa, las credenciales y configuraciones sensibles deberán proporcionarse mediante variables de entorno u otros mecanismos locales, no mediante archivos versionados.
 
 ---
 
@@ -328,7 +337,19 @@ git fetch origin
 git rebase origin/main
 ```
 
-Si la rama ya estaba publicada, después del rebase se sube con `git push --force-with-lease`. Si el equipo prefiere `git merge origin/main`, también es válido; lo importante es que la rama esté actualizada antes del merge.
+Si la rama ya estaba publicada, después del rebase se sube con:
+
+```bash
+git push --force-with-lease
+```
+
+Si el equipo prefiere:
+
+```bash
+git merge origin/main
+```
+
+también es válido; lo importante es que la rama esté actualizada antes del merge.
 
 ---
 
@@ -401,6 +422,8 @@ Los cambios de documentación pasan por Pull Request como cualquier otro cambio 
 
 No se deben editar páginas directamente en la Wiki de GitHub: la siguiente publicación sobrescribiría esos cambios. Al agregar una página nueva, también se agrega a `Home.qmd` y a `_Sidebar.qmd`.
 
+La documentación debe distinguir entre funcionalidades implementadas, decisiones ya adoptadas y trabajo pendiente. Cuando una funcionalidad cambia, los documentos relacionados deberán actualizarse para evitar que la Wiki describa una versión anterior del sistema.
+
 ---
 
 ## 15. Trabajo en equipo
@@ -418,6 +441,8 @@ Antes de comenzar una tarea se recomienda:
 
 Si una tarea requiere modificar archivos que otra persona está utilizando, se recomienda coordinarse antes de realizar cambios importantes.
 
+Cuando una tarea involucre cambios en partes compartidas del sistema, como el modelo de datos, la persistencia, la API o la documentación general, se recomienda revisar primero la documentación correspondiente para mantener consistencia con las decisiones existentes.
+
 ---
 
 ## 16. Buenas prácticas
@@ -433,6 +458,8 @@ Se recomienda:
 * Ejecutar las pruebas antes de crear un Pull Request.
 * Revisar los Pull Requests de otros integrantes.
 * Mantener una comunicación clara sobre cambios que puedan afectar otras partes del proyecto.
+* Utilizar variables de entorno para configuraciones sensibles o específicas del entorno.
+* Evitar modificar directamente `main`.
 
 ---
 
@@ -482,6 +509,6 @@ Eliminar rama si ya no es necesaria
 
 ## 18. Estado del documento
 
-**Estado:** Versión 1.2 (unificada para LosMergeados).
+**Estado:** Versión 1.3 (actualizada para el estado actual de LosMergeados).
 
 Esta guía puede actualizarse conforme se establezcan nuevas reglas de colaboración o se incorporen nuevas herramientas al proyecto.

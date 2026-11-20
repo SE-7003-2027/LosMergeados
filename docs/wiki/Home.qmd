@@ -8,15 +8,25 @@ title: "Inicio"
 
 ## ¿De qué trata el proyecto?
 
-El proyecto busca desarrollar un sistema de recomendación de libros, cómics y manga disponibles en México, considerando las preferencias y valoraciones de los usuarios. Las obras se pueden explorar y organizar por **autor**, **género** y **estatus de publicación** (en publicación, finalizado, en pausa, cancelado).
+El proyecto busca desarrollar un sistema de recomendación de libros, cómics y manga disponibles en México, considerando las preferencias y valoraciones de los usuarios.
+
+Actualmente, el sistema permite explorar un catálogo persistido y buscar obras tanto en el catálogo local como en Open Library. Las obras se pueden consultar y organizar por **autor**, **género**, **formato** y **estatus de publicación** (en publicación, finalizado, en pausa, cancelado).
+
+Las funcionalidades de usuarios, valoraciones y recomendaciones personalizadas forman parte del desarrollo futuro.
 
 ## Objetivo
 
 Definir y desarrollar progresivamente una solución que permita a los usuarios descubrir contenido que se adapte a sus intereses.
 
+La primera etapa del proyecto se concentra en contar con un catálogo funcional, una API REST, persistencia de datos y una fuente externa de información. Sobre esta base se incorporarán posteriormente usuarios, valoraciones y algoritmos de recomendación.
+
 ## Origen del equipo
 
-LosMergeados se formó al unir a los integrantes que estaban trabajando en dos equipos que habían elegido el mismo proyecto: **Git-Wreckers** y **Equipo 7**. El repositorio parte de lo mejor de ambos: el código de Equipo 7 (Spring Boot) y la documentación de Git-Wreckers (PRD, RFC, arquitectura e investigación). Los detalles están en [Decisión de unificación](Decision-de-unificacion).
+LosMergeados se formó al unir a los integrantes que estaban trabajando en dos equipos que habían elegido el mismo proyecto: **Git-Wreckers** y **Equipo 7**.
+
+El repositorio parte de lo mejor de ambos: el código de Equipo 7 basado en Spring Boot y la documentación e investigación de Git-Wreckers (PRD, RFC, arquitectura, fuentes de datos y algoritmos de recomendación).
+
+Los detalles de esta integración están documentados en [Decisión de unificación](Decision-de-unificacion) y [Consolidación de avances](Consolidacion-de-avances).
 
 ## Documentación del proyecto
 
@@ -25,41 +35,52 @@ LosMergeados se formó al unir a los integrantes que estaban trabajando en dos e
 | Página | Para qué sirve |
 |---|---|
 | [PRD](PRD) | Qué debe hacer el sistema: requisitos, historias de usuario y prioridades |
-| [RFC](RFC) | Cómo se construye: decisiones técnicas |
+| [RFC](RFC) | Decisiones y criterios técnicos del proyecto |
 | [Arquitectura](Arquitectura) | Componentes del sistema y organización del código |
-| [Modelo de datos](Modelo-de-datos) | Qué información maneja una obra, hoy y a futuro |
+| [Modelo de datos](Modelo-de-datos) | Información que maneja una obra, persistencia actual y entidades futuras |
 | [Decisión de unificación](Decision-de-unificacion) | Qué se tomó de cada equipo y por qué |
+| [Consolidación de avances](Consolidacion-de-avances) | Inventario de avances de ambos equipos y estado de la integración |
 
 ### Investigación (SPIKEs)
 
 | Página | Para qué sirve |
 |---|---|
 | [Evaluación de tecnologías](Evaluacion-de-tecnologias) | Alternativas de frontend, backend y base de datos |
-| [Fuentes de datos y APIs](Fuentes-de-datos-y-APIs) | De dónde obtener el catálogo y la disponibilidad en México |
-| [Algoritmos de recomendación](Algoritmos-de-recomendacion) | Basado en contenido, colaborativo e híbrido |
-| [Prueba técnica de framework](Prueba-tecnica-backend-framework) | Antecedente: Flask vs FastAPI |
+| [Fuentes de datos y APIs](Fuentes-de-datos-y-APIs) | Fuentes utilizadas o evaluadas para obtener información del catálogo y disponibilidad en México |
+| [Algoritmos de recomendación](Algoritmos-de-recomendacion) | Alternativas de recomendación basadas en contenido, colaboración e híbridas |
+| [Prueba técnica de framework](Prueba-tecnica-backend-framework) | Antecedente de la comparación entre Flask y FastAPI |
 
 ### Uso y desarrollo
 
 | Página | Para qué sirve |
 |---|---|
-| [Instalación y ejecución](Instalacion-y-ejecucion) | Levantar el proyecto desde cero |
-| [API REST](API-REST) | Endpoints disponibles |
-| [Vista web](Vista-web) | La interfaz para explorar el catálogo |
-| [Guía de colaboración](Guia-de-colaboracion) | Ramas, commits, Pull Requests y wiki |
+| [Instalación y ejecución](Instalacion-y-ejecucion) | Levantar el proyecto desde cero y configurar la conexión a PostgreSQL |
+| [API REST](API-REST) | Endpoints disponibles y comportamiento de la API |
+| [Vista web](Vista-web) | Interfaz para explorar el catálogo y consultar obras |
+| [Guía de colaboración](Guia-de-colaboracion) | Ramas, commits, Pull Requests y trabajo con la wiki |
 | [Roadmap de sprints](Roadmap-de-sprints) | Qué se ha hecho y qué sigue |
-| [Consolidación de avances](Consolidacion-de-avances) | Inventario de avances de ambos equipos y plan de consolidación |
 
 ## Estado actual
 
 - ✅ Proyecto Spring Boot 3 + Maven con Java 21
-- ✅ API REST del catálogo: listado con filtros por formato y estatus, detalle por id y estado del servicio
+- ✅ API REST del catálogo con listado, búsqueda, filtros por formato y estatus, y detalle por ID
+- ✅ Persistencia PostgreSQL mediante Spring Data JPA e Hibernate
+- ✅ PostgreSQL hospedado en Neon y configurado mediante variables de entorno
+- ✅ Búsqueda de obras externas mediante Open Library
+- ✅ Importación de obras seleccionadas desde Open Library al catálogo local
+- ✅ Prevención de duplicados mediante el identificador de la fuente externa
 - ✅ Documentación interactiva de la API (Swagger UI)
-- ✅ Vista web con búsqueda, filtros, agrupación por autor, género y estatus, y skeletons de carga
-- ✅ Pruebas automatizadas (JUnit 5 + MockMvc)
-- ✅ PRD, RFC, arquitectura e investigación documentados
-- 📋 Base de datos, usuarios, valoraciones y motor de recomendaciones (próximos sprints)
+- ✅ Vista web con búsqueda, filtros, agrupación por autor, género y estatus, detalle y estados de carga/error
+- ✅ Pruebas automatizadas con JUnit 5 y MockMvc
+- ✅ PRD, RFC, arquitectura, modelo de datos e investigación documentados
+- 📋 Migraciones de base de datos con Flyway
+- 📋 Registro e inicio de sesión de usuarios
+- 📋 Valoraciones e historial de interacción
+- 📋 Recomendaciones personalizadas
+- 📋 Integración de disponibilidad de obras en México
 
 ## Repositorio
 
-El código fuente y los archivos de trabajo se encuentran en el repositorio de GitHub de LosMergeados: <https://github.com/SE-7003-2027/LosMergeados>
+El código fuente y los archivos de trabajo se encuentran en el repositorio de GitHub de LosMergeados:
+
+<https://github.com/SE-7003-2027/LosMergeados>

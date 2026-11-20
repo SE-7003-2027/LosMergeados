@@ -2,120 +2,192 @@
 title: "Consolidación de avances de ambos proyectos"
 ---
 
-### Git-Wreckers
+## Git-Wreckers
 
 | Avance verificado | Evidencia en [Git-Wreckers][GW] | Aprovechamiento |
 |---|---|---|
-| API con listado, filtro `?tipo=`, detalle por ID y 404 | `backend/app/routes/libros.py` | Conservar comportamiento en Java; ya adaptado parcialmente en `Sprint4` |
-| Servicio separado de las rutas y seis obras | `backend/app/services/catalogo.py` | Reutilizar separación de responsabilidades y datos de ejemplo |
+| API con listado, filtro `?tipo=`, detalle por ID y 404 | `backend/app/routes/libros.py` | Conservar comportamiento en Java; se adaptó al contrato actual de la API |
+| Servicio separado de las rutas y obras de ejemplo | `backend/app/services/catalogo.py` | Reutilizar separación de responsabilidades y casos de prueba |
 | Modelo Pydantic: `id`, `titulo`, `tipo`, `genero`, `autor`, `calificacion` | `backend/app/models/libro.py` | Mapear campos; excluir la calificación fija como valoración real |
 | Estado del servicio, documentación FastAPI y CORS | `backend/app/main.py` | Conservar salud y documentación de API; CORS no es necesario para la vista del mismo servidor |
-| Página que consulta la API y filtra por tipo | `frontend/index.html`, `frontend/js/main.js` | Conservar como antecedente; la vista de Equipo 7 cubre y amplía ese recorrido |
-| Ocho pruebas del backend principal | `backend/tests/test_libros.py`, `test_health.py` | Recuperar casos de listado, filtros, vacío, detalle y errores; no trasladar pytest al proyecto Java |
-| PRD, RFC, arquitectura, evaluación tecnológica, fuentes, algoritmos y prueba Flask/FastAPI | `wiki/PRD.qmd`, `RFC.qmd`, `Arquitectura.qmd`, `Evaluacion-de-tecnologias.qmd`, `Fuentes-de-datos-y-APIs.qmd`, `Algoritmos-de-recomendacion.qmd`, `Prueba-tecnica-backend-framework.qmd` | Conservar requisitos e investigación con adaptación al backend acordado |
+| Página que consulta la API y filtra por tipo | `frontend/index.html`, `frontend/js/main.js` | Conservar como antecedente; la vista de LosMergeados cubre y amplía ese recorrido |
+| Pruebas del backend principal | `backend/tests/test_libros.py`, `test_health.py` | Recuperar casos de listado, filtros, vacío, detalle y errores; adaptar las pruebas al proyecto Java |
+| PRD, RFC, arquitectura, evaluación tecnológica, fuentes, algoritmos y prueba Flask/FastAPI | `wiki/PRD.qmd`, `RFC.qmd`, `Arquitectura.qmd`, `Evaluacion-de-tecnologias.qmd`, `Fuentes-de-datos-y-APIs.qmd`, `Algoritmos-de-recomendacion.qmd`, `Prueba-tecnica-backend-framework.qmd` | Conservar requisitos e investigación, adaptándolos al backend acordado |
 | Prototipo anterior y prueba comparativa de frameworks | `demo/`, `backend/spikes/flask-vs-fastapi/` | Referencia histórica, fuera de la aplicación unificada |
 
-Las seis obras son Cien años de soledad, Death Note, Watchmen, El nombre del viento, One Piece y Saga. No existen cuentas, valoraciones de usuarios, persistencia ni motor de recomendaciones en ese código. El README no sustituye la evidencia de las rutas y servicios: describe una etapa menos avanzada.
+Las obras y funcionalidades de Git-Wreckers se conservaron como antecedente de integración. No se trasladó su modelo de valoración fija como si representara valoraciones reales de usuarios.
 
-### Equipo 7 – Recomendador de libros
+## Equipo 7 – Recomendador de libros
 
 | Avance verificado | Evidencia en [Equipo 7][E7] | Aprovechamiento |
 |---|---|---|
-| Java 21, Spring Boot 3.3.4 y Maven Wrapper | `pom.xml`, `mvnw`, `mvnw.cmd`, `.mvn/` | Base ejecutable unificada, sin un segundo servidor para el frontend |
-| `GET /api/books`, ocho obras en una lista del controlador | `src/main/java/mx/equipo7/recomendador/book/BookController.java` | Conservar contrato y mover datos a servicio, como ya hace `Sprint4` |
-| Obra con título, autor, género, formato y estatus | `src/main/java/mx/equipo7/recomendador/book/Book.java` | Conservar `status` y adaptar formato/estatus a enums |
-| Búsqueda por título/autor/género, filtros de formato/estatus y agrupación | `src/main/resources/static/js/app.js` | Reutilizar vista completa; la búsqueda se realiza en el navegador sobre el catálogo descargado |
-| Estados de carga, vacío y error con reintento | `src/main/resources/static/index.html`, `css/styles.css`, `js/app.js` | Reutilizar presentación e interacción; validar después en navegador |
-| Siete pruebas web y una de contexto | `src/test/java/mx/equipo7/recomendador/book/BookControllerTest.java`, `RecomendadorApplicationTests.java` | Base de pruebas Java; no prueban las interacciones JavaScript |
+| Java 21, Spring Boot 3 y Maven Wrapper | `pom.xml`, `mvnw`, `mvnw.cmd`, `.mvn/` | Base ejecutable unificada, sin un segundo servidor para el frontend |
+| `GET /api/books` y catálogo de obras de ejemplo | `src/main/java/mx/equipo7/recomendador/book/BookController.java` | Conservar contrato y adaptar la fuente de datos a persistencia |
+| Obra con título, autor, género, formato y estatus | `src/main/java/mx/equipo7/recomendador/book/Book.java` | Conservar el modelo de dominio y formalizar formato/estatus mediante enums |
+| Búsqueda por título/autor/género, filtros de formato/estatus y agrupación | `src/main/resources/static/js/app.js` | Reutilizar la vista y trasladar búsqueda/filtros al backend |
+| Estados de carga, vacío y error con reintento | `src/main/resources/static/index.html`, `css/styles.css`, `js/app.js` | Conservar presentación e interacción |
+| Pruebas web y de contexto | `src/test/java/mx/equipo7/recomendador/book/BookControllerTest.java`, `RecomendadorApplicationTests.java` | Base para la suite de pruebas Java |
 | Guía de contribución y wiki práctica | `CONTRIBUTING.md`, `docs/wiki/` | Conservar instalación, API, modelo, vista, roadmap y convenciones de colaboración |
 
-Las ocho obras son El nombre del viento, Akira, Watchmen, Dune, Berserk, Saga, La sombra del viento y Fullmetal Alchemist. PostgreSQL, JPA, seguridad, recomendaciones y fuentes externas aparecen como trabajo futuro, no como implementaciones.
+El proyecto de Equipo 7 proporcionó la base Java, Spring Boot, la interfaz web y el modelo inicial que posteriormente se integraron y ampliaron en LosMergeados.
 
-### Trabajo ya presente en LosMergeados
+## Trabajo integrado en LosMergeados
 
-El registro [Decisión de unificación][ADR], fechado el 19 de octubre y marcado como **Aceptada** en `Sprint4`, establece Spring Boot como base, documentación de ambos equipos y fuentes Quarto en `docs/wiki/`. Su estado documental no significa que la integración ya esté en `main`.
+La decisión de unificación estableció Spring Boot como base común y la incorporación de la documentación y avances de ambos equipos. La integración posterior se realizó sobre `main` mediante ramas y Pull Requests, manteniendo la historia de Git y evitando conservar dos aplicaciones independientes.
 
-| Avance en [Sprint4][LM] | Evidencia | Límite actual |
+El estado actual de `main` incluye persistencia PostgreSQL mediante Spring Data JPA e Hibernate, integración con Open Library y una interfaz web conectada al backend.
+
+| Avance integrado | Evidencia actual | Estado |
 |---|---|---|
-| Paquete `mx.losmergeados.recomendador`, modelo con enums | `src/main/java/mx/losmergeados/recomendador/book/{Book,Format,PublicationStatus}.java` | Sin entidad JPA ni almacenamiento persistente |
-| Servicio con once obras, filtros combinables y búsqueda por ID | `book/BookCatalog.java` dentro del paquete anterior | Lista fija; no consulta proveedores externos |
-| Listado, filtros `format/status` y detalle por ID | `book/BookController.java` | No hay búsqueda textual en servidor; formato inválido e ID no numérico se convierten en 400, no en el 422 de FastAPI |
-| Salud y OpenAPI | `health/HealthController.java`, `pom.xml`, `src/main/resources/application.properties` | Código/configuración presentes; ejecución pendiente de validar |
-| Vista de Equipo 7 adaptada al nuevo nombre | `src/main/resources/static/` | Tarjetas sin acción de abrir detalle; búsqueda y filtros siguen siendo locales |
-| 22 métodos de prueba: 14 web, 5 catálogo, 2 aplicación/OpenAPI y 1 salud | `src/test/java/mx/losmergeados/recomendador/` | Inventario por lectura del código; no se afirma que hayan pasado |
-| Documentación consolidada | `docs/wiki/*.qmd`, `CONTRIBUTING.md`, `README.md` | Reconciliarla con `main` y corregir los estados de integración |
+| Paquete `mx.losmergeados.recomendador` y modelo de dominio | `src/main/java/mx/losmergeados/recomendador/book/` | Implementado |
+| Modelo `Book` con `Format` y `PublicationStatus` | `Book.java`, `Format.java`, `PublicationStatus.java` | Implementado |
+| Persistencia PostgreSQL | `BookEntity.java`, `BookRepository.java`, configuración de `application.properties` | Implementado |
+| PostgreSQL hospedado en Neon | Variables `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | Implementado |
+| Catálogo persistente | `BookCatalog.java` + `BookRepository` | Implementado |
+| Búsqueda por texto en backend | `GET /api/books?q=` | Implementado |
+| Filtros de formato y estatus | `GET /api/books?format=...&status=...` | Implementado |
+| Detalle por identificador | `GET /api/books/{id}` | Implementado |
+| Búsqueda externa | `GET /api/books/external?title=...` | Implementado |
+| Integración con Open Library | `OpenLibraryClient.java`, `OpenLibraryBook.java` | Implementado |
+| Importación de obras externas | `POST /api/books/import` | Implementado |
+| Prevención de duplicados externos | `BookEntity.sourceId` + `BookRepository.findBySourceId(...)` | Implementado |
+| Interfaz web | `src/main/resources/static/` | Implementado |
+| Detalle desde la interfaz | `GET /api/books/{id}` y `#obra/{id}` | Implementado |
+| Estados de carga, vacío y error | `index.html`, `styles.css`, `app.js` | Implementado |
+| Salud de la aplicación | `HealthController.java` | Implementado |
+| OpenAPI/Swagger | `pom.xml`, `application.properties` | Implementado |
+| Pruebas automatizadas | `src/test/java/mx/losmergeados/recomendador/` | Implementado |
+| Registro e inicio de sesión | Pendiente | Futuro |
+| Valoraciones e historial | Pendiente | Futuro |
+| Recomendaciones personalizadas | Pendiente | Futuro |
+| Disponibilidad en México | Pendiente | Futuro |
+| Migraciones con Flyway | Pendiente | Próximo trabajo |
+
+La consolidación actual ya no corresponde al estado inicial de `Sprint4`. Las tablas anteriores de este documento se mantienen como evidencia del origen de los componentes, mientras que esta sección describe el estado vigente de la aplicación integrada.
 
 ## Comparación y decisiones de integración
 
 | Elemento | Decisión | Justificación y adaptación |
 |---|---|---|
-| Base de aplicación | **Conservar** Spring Boot de Equipo 7 y el avance existente de `Sprint4` | API, vista, Maven y pruebas en un proyecto; coincide con la decisión aceptada. Rehacer la migración duplicaría trabajo |
-| Servicio y contratos de Git-Wreckers | **Adaptar**, conservando lo ya trasladado a `BookCatalog`, detalle y salud | Python y Java no son intercambiables. Se reutiliza el comportamiento y los casos de prueba, no dos backends en paralelo |
-| Interfaz | **Conservar** HTML/CSS/JS de Equipo 7 | Ya ofrece más recorridos que el filtro de Git-Wreckers. Completar búsqueda de servidor y ficha en #7 |
-| Campos de obra | **Conservar** `id/title/author/genre/format/status` | `titulo→title`, `tipo→format`, `genero→genre`, `autor→author`; `libro/comic/manga→BOOK/COMIC/MANGA`. Los clientes Python requerirían adaptación de rutas, campos y errores |
-| Catálogos | **Conservar como ejemplos** las once obras combinadas de `Sprint4` | Watchmen, El nombre del viento y Saga son comunes. Se conservaron los ID 1–8 de Equipo 7 y se asignaron 9–11 a las exclusivas de Git-Wreckers; no importar los ID originales en conflicto |
-| Estatus y disponibilidad | **Adaptar la presentación y validar procedencia** | Git-Wreckers no aportaba estatus; los agregados son datos de ejemplo. `HIATUS`, etc., describen publicación, no disponibilidad comercial en México. La portada aún afirma disponibilidad sin respaldo |
-| `calificacion` fija | **Descartar de la migración del modelo** | No representa valoraciones de usuarios. Estas requieren entidad y restricciones propias en #4; no convertir números de ejemplo en historial real |
-| Documentación | **Conservar y armonizar** PRD/RFC/investigación de Git-Wreckers y guías prácticas de Equipo 7 | Ya combinadas en `Sprint4`; registrar propuestas como propuestas. El RFC aún deja el gestor pendiente mientras README/Roadmap planifican PostgreSQL; resolver la redacción con #4 y #8 |
-| Fuentes y algoritmos investigados | **Conservar como antecedentes** | Google Books, AniList y la candidata para cómics necesitan evidencia actual en #5 antes de #6. La investigación de contenido/colaborativo/híbrido no constituye un motor implementado |
-| `demo/`, frontend y backend Python, spike Flask/FastAPI | **Excluir de la aplicación unificada**, conservar en el repositorio original | Duplican recorridos o corresponden a otra tecnología. No se eliminan los originales ni se reescriben sus historiales |
-| CI de pytest y publicación manual de wiki de Equipo 7 | **No trasladar literalmente** | Java necesita verificación Maven; la publicación de wiki usa la herramienta ya integrada de LosMergeados |
-| Ramas y colaboración | **Conservar** PR revisado y Conventional Commits en español | Trabajar desde `main`, respetar el código de `Sprint4` y conservar la plantilla y automatización de `main`; no hacer merge automático |
+| Base de aplicación | **Conservar** Spring Boot | API, vista, Maven, pruebas y persistencia forman ahora una sola aplicación |
+| Servicio y contratos de Git-Wreckers | **Adaptar** | Se reutilizó el comportamiento del catálogo, filtros, detalle y casos de error, pero se implementó con Java y Spring Boot |
+| Interfaz | **Conservar y ampliar** HTML/CSS/JS de Equipo 7 | La interfaz ya proporcionaba catálogo, filtros, agrupación y estados visuales; posteriormente se conectó al backend y al detalle por ID |
+| Campos de obra | **Conservar** `id/title/author/genre/format/status` | `titulo→title`, `tipo→format`, `genero→genre`, `autor→author`; `libro/comic/manga→BOOK/COMIC/MANGA` |
+| Persistencia | **Incorporar PostgreSQL + Spring Data JPA** | Sustituye el catálogo únicamente en memoria y permite conservar las obras entre ejecuciones |
+| Infraestructura de base de datos | **Incorporar Neon** | Proporciona una instancia PostgreSQL accesible desde la aplicación sin requerir un servidor PostgreSQL local |
+| Fuente externa | **Incorporar Open Library** | Permite buscar obras fuera del catálogo local e importar resultados seleccionados |
+| Identificación externa | **Incorporar `sourceId`** | Permite relacionar una obra importada con su identificador de Open Library y evitar duplicados |
+| `calificacion` fija | **Descartar de la migración del modelo** | No representa valoraciones de usuarios. Las valoraciones requieren su propio modelo y reglas |
+| Catálogos de ejemplo | **Conservar como datos iniciales de prueba** | Sirvieron para validar filtros, búsqueda, detalle y presentación antes y después de la persistencia |
+| Documentación | **Conservar y armonizar** | PRD, RFC, arquitectura, modelo, API, fuentes y vista se actualizan para distinguir implementación actual y trabajo futuro |
+| Fuentes y algoritmos investigados | **Conservar como antecedentes y propuestas** | La investigación no se considera automáticamente una funcionalidad implementada |
+| `demo/`, frontend y backend Python, spike Flask/FastAPI | **Excluir de la aplicación unificada** | Son prototipos o implementaciones de otra tecnología. Se conservan en sus repositorios originales |
+| CI y herramientas específicas de Python | **No trasladar literalmente** | El proyecto unificado utiliza Maven y la suite de pruebas Java |
+| Ramas y colaboración | **Conservar** | Se trabaja desde ramas, con Pull Requests, Conventional Commits y revisión antes de integrar a `main` |
 
-La base integrada conserva las fortalezas de ambos proyectos. No se propone cambiar de framework, rehacer la interfaz ni fusionar la rama antigua `algunos_cambios` que perdería `status`.
+La integración conserva las fortalezas de ambos proyectos sin mantener dos backends ni dos aplicaciones web independientes. Las decisiones históricas siguen siendo útiles para explicar por qué se eligió Spring Boot y qué elementos fueron reutilizados o adaptados.
+
+## Estado actual de la arquitectura
+
+El flujo principal de la aplicación integrada es:
+
+```text
+                    ┌──────────────────────┐
+                    │      Navegador        │
+                    │   HTML / CSS / JS     │
+                    └──────────┬───────────┘
+                               │ HTTP
+                               ▼
+                    ┌──────────────────────┐
+                    │     Spring Boot       │
+                    │    REST Controller    │
+                    └───────┬───────┬──────┘
+                            │       │
+                catálogo local      │ búsqueda/importación
+                            │       │
+                            ▼       ▼
+                    ┌────────────┐  ┌─────────────────┐
+                    │ Spring Data│  │  Open Library   │
+                    │    JPA     │  │      API        │
+                    └─────┬──────┘  └─────────────────┘
+                          │
+                          ▼
+                    ┌────────────┐
+                    │ PostgreSQL  │
+                    │    Neon     │
+                    └────────────┘
+```
+
+Para el catálogo local, `Book` representa el modelo de dominio, `BookEntity` representa la persistencia y `BookRepository` proporciona el acceso a PostgreSQL.
+
+Para las fuentes externas, `OpenLibraryClient` consulta la API y transforma los resultados en `OpenLibraryBook`. Cuando el usuario decide importar una obra, el backend transforma los datos necesarios al modelo persistente y verifica `sourceId` para evitar duplicados.
 
 ## Plan y seguimiento de pendientes
 
-Los responsables de #4 a #9 son las asignaciones existentes de Jimmy. La coordinación de la incorporación del trabajo existente queda a cargo de `MiguelJimenez12` dentro de este plan. No se reasignan tareas de otros integrantes.
+Las tareas que siguen deben distinguirse de las funcionalidades ya implementadas. La persistencia y la primera integración con una fuente externa ya no son pendientes; el trabajo futuro se concentra en migraciones, usuarios, valoraciones, recomendaciones y ampliaciones del catálogo.
 
-| Orden y prioridad | Trabajo y resultado comprobable | Dependencia | Seguimiento y responsables |
-|---|---|---|---|
-| 1 · Indispensable | Revisar `Sprint4` y preparar su incorporación a `main`, conservando plantilla, wiki e historial; aclarar datos de prueba y corregir la afirmación de disponibilidad | Este inventario y coordinación con quien mantiene la rama | `MiguelJimenez12` |
-| 2 · Indispensable | Ejecutar pruebas y recorrido catálogo → filtros → vacío/error; registrar resultados y defectos. Desbloquear primero el acceso válido a dependencias Maven | Versión de integración acordada en el paso 1 | [#9](https://github.com/SE-7003-2027/LosMergeados/issues/9), `pablopinedalola` y `MiguelJimenez12` |
-| 3 · Indispensable para completar el flujo de búsqueda/detalle | Añadir búsqueda en backend y abrir detalle desde la vista; adaptar lo existente en lugar de rehacer catálogo | Contrato y base estabilizados en el paso 1; comprobación final en #9 | [#7](https://github.com/SE-7003-2027/LosMergeados/issues/7), `pablopinedalola` y `AxelTapiaCC` |
-| 4 · Trabajo en paralelo | Definir identificadores, obras de varias fuentes, usuarios y valoraciones; resolver el modelo persistente antes de implementarlo | Comparación de campos de este documento | [#4](https://github.com/SE-7003-2027/LosMergeados/issues/4), `Jimmy7548` |
-| 5 · Trabajo en paralelo | Probar fuentes candidatas y documentar campos, acceso y límites vigentes; decidir estrategia por tipo de obra | Investigación recuperada; sin asumir selección definitiva | [#5](https://github.com/SE-7003-2027/LosMergeados/issues/5), `MiguelJimenez12` |
-| 6 · Después de seleccionar fuente | Integrar un proveedor, transformar al contrato interno y probar vacío/error/conexión | #5 y acuerdo de campos con #4 | [#6](https://github.com/SE-7003-2027/LosMergeados/issues/6), `Jimmy7548` y `MiguelJimenez12` |
-| 7 · Documentación durante el desarrollo | Actualizar arquitectura, modelo y decisiones; distinguir presente, planificado y pendiente. Publicar fuentes revisadas de la wiki | #4, #5 y estado real de la incorporación de `Sprint4` | [#8](https://github.com/SE-7003-2027/LosMergeados/issues/8), `Jimmy7548` y `AxelTapiaCC` |
+| Prioridad | Trabajo y resultado comprobable | Dependencia |
+|---|---|---|
+| 1 · Próximo | Incorporar Flyway para administrar el esquema de PostgreSQL mediante migraciones y cambiar Hibernate de `ddl-auto=update` a una estrategia apropiada para un esquema controlado | Persistencia actual estable |
+| 2 · Indispensable | Definir e implementar registro e inicio de sesión de usuarios | Modelo de usuario y seguridad |
+| 3 · Indispensable | Definir modelo de valoraciones e historial de interacción | Usuarios |
+| 4 · Trabajo en paralelo | Mejorar categorización por género y clasificación de obras | Modelo de datos |
+| 5 · Trabajo en paralelo | Ampliar búsqueda y filtros, incluyendo paginación para catálogos grandes | API REST |
+| 6 · Después de usuarios y valoraciones | Implementar recomendaciones personalizadas | Historial, valoraciones y modelo de recomendaciones |
+| 7 · Después de consolidar fuentes | Integrar fuentes adicionales y normalizar sus datos | Contrato interno y estrategia de fuentes |
+| 8 · Trabajo futuro | Investigar disponibilidad real de las obras en México | Fuentes comerciales o de disponibilidad |
+| 9 · Documentación continua | Mantener arquitectura, modelo, API, fuentes, vista y roadmap sincronizados con el código | Todos los cambios anteriores |
 
-Persistencia, cuentas, valoraciones y recomendaciones siguen en el alcance futuro del PRD, no en la primera consolidación. Su desglose se coordina con #4 y la planeación de Jimmy; no se modifica aquí el orden académico de los sprints. CI y despliegue se mantienen como pendientes de planeación del Roadmap, con `MiguelJimenez12` como seguimiento para proponer su desglose al equipo. No son condición para dar por escrito el inventario ni se presentan como desarrollados.
+Las recomendaciones, valoraciones, cuentas y disponibilidad en México permanecen dentro del alcance futuro del proyecto. No deben presentarse como funcionalidades disponibles mientras no exista una implementación verificable.
 
-La revisión e incorporación de la rama existente, la reconciliación de documentación y la corrección de las afirmaciones de la portada quedan registradas en el paso 1 con su responsable. Para los demás pendientes se reutilizan las issues existentes, evitando duplicarlas.
+## Demo y verificación actual
 
-## Demo propuesta y verificación
+La demo actual debe centrarse en las funcionalidades que ya existen en `main`.
 
-La primera demo debe usar una versión revisada de `Sprint4` incorporada mediante PR. Se propone este recorrido, sujeto a ejecución y registro en #9:
+Se propone el siguiente recorrido:
 
-1. Arrancar con JDK 21 y Maven Wrapper; abrir el catálogo con once obras de demostración.
-2. Buscar `Dune` (una coincidencia), quitar la búsqueda, filtrar `MANGA` (cinco obras) y combinar con `ONGOING` (Berserk y One Piece). Mostrar agrupación por autor, género y estatus.
-3. Mostrar un vacío con estatus `CANCELLED` y comprobar error/reintento si falla la carga.
-4. Consultar `/api/books/3` (Watchmen), `/api/books/999` (404), un filtro inválido (400), `/api/health` y `/v3/api-docs`.
-5. Al completar #7, demostrar la búsqueda desde el servidor y abrir una ficha desde la interfaz. Mientras tanto, describir el detalle como disponible por API.
+1. Configurar JDK 21 y las variables de conexión a PostgreSQL/Neon.
+2. Arrancar la aplicación con Maven Wrapper.
+3. Abrir la interfaz en `http://localhost:8080`.
+4. Consultar el catálogo local y comprobar búsqueda por título, autor o género.
+5. Aplicar filtros de formato y estatus y comprobar la agrupación de resultados.
+6. Abrir una obra desde la interfaz y comprobar que el detalle se obtiene mediante `GET /api/books/{id}`.
+7. Consultar una obra inexistente y comprobar la respuesta de error.
+8. Realizar una búsqueda externa mediante Open Library.
+9. Seleccionar un resultado externo e importarlo al catálogo.
+10. Volver a consultar el catálogo y comprobar que la obra importada aparece en PostgreSQL.
+11. Intentar importar nuevamente la misma obra y comprobar que `sourceId` evita crear un duplicado.
+12. Consultar `/api/health` y `/v3/api-docs`.
 
-Estos resultados se derivan de los datos y del código; son expectativas para el recorrido, no resultados de una prueba en navegador realizada ahora. La demo presenta exploración de catálogo. No debe atribuirle recomendaciones personalizadas, persistencia, valoraciones reales ni disponibilidad en México. La fecha y rúbrica de la demo no se verificaron en esta tarea; este plan no fija un calendario oficial.
+Este recorrido corresponde a la aplicación integrada actual. Las recomendaciones personalizadas, valoraciones, cuentas y disponibilidad en México no deben incluirse como parte de la demo hasta que estén implementadas.
 
-### Verificación realizada en esta revisión
+## Verificación de la consolidación
 
-Se revisaron código, estructuras, pruebas, documentación, historial y ramas de ambos repositorios originales, además de `main` y `Sprint4` de LosMergeados. La comparación de la rama alternativa de Equipo 7 confirmó la incompatibilidad del campo `status`.
+La consolidación original comparó los repositorios de Git-Wreckers y Equipo 7, identificó qué elementos podían reutilizarse y documentó las decisiones de integración. Esa comparación sigue siendo válida como antecedente, pero el estado del código de LosMergeados ha evolucionado desde entonces.
 
-Se intentó ejecutar `.\mvnw.cmd test` sobre una copia aislada de `Sprint4`, con JDK 21. Maven se detuvo antes de compilar y ejecutar pruebas al resolver `spring-boot-starter-parent:3.3.4` desde Maven Central: `PKIX path building failed`, por una cadena de certificados no reconocida. **No hay resultado de pruebas aprobadas ni fallo funcional demostrado.** El bloqueo queda registrado en este documento y #9 conserva la responsabilidad de validar la aplicación. No se deshabilitó la validación de certificados.
+La versión actual de la documentación debe distinguir tres categorías:
 
-En esta revisión no se volvieron a ejecutar las suites de los proyectos originales ni se validó la interfaz en navegador. Los resultados de una revisión anterior no se usan para declarar aprobada la versión de `Sprint4`.
+- **Implementado:** existe código funcional en `main` y forma parte de la aplicación actual.
+- **Antecedente:** proviene de Git-Wreckers, Equipo 7 o de una etapa anterior del proyecto y sirve para explicar decisiones de integración.
+- **Futuro:** aparece en el PRD, RFC, roadmap o investigación, pero todavía no cuenta con una implementación integrada.
+
+Esta distinción evita que una decisión o propuesta histórica se interprete como una funcionalidad disponible.
 
 ## Comprobación de la issue #3
 
 | Actividad o criterio | Evidencia de cumplimiento |
 |---|---|
-| Revisar repositorios y documentos | Versiones fijadas e inventarios con rutas verificables |
-| Identificar reutilización y duplicaciones | Inventarios y tabla de decisiones, incluyendo prototipos, campos e historiales |
-| Comparar tecnologías, estructuras y decisiones | FastAPI frente a Spring Boot; mapa de campos, contratos, arquitectura y ADR existente |
-| Registrar qué integrar, descartar y adaptar | Tabla de decisiones con justificación y límites |
-| Seguimiento de trabajos de integración | Incorporación de `Sprint4` con responsable en este plan; #4–#9 reutilizadas para el resto |
-| Inventario de avances relevantes | Secciones de Git-Wreckers, Equipo 7 y trabajo existente en LosMergeados |
-| Decisiones justificadas y documentadas | Decisión aceptada de `Sprint4` respetada y contrastada con código |
-| Pendientes con responsables o issues | Tabla de seguimiento y responsabilidades de planeación |
+| Revisar repositorios y documentos | Inventarios y documentación de ambos proyectos |
+| Identificar reutilización y duplicaciones | Comparación de servicios, modelos, interfaz, pruebas y prototipos |
+| Comparar tecnologías, estructuras y decisiones | FastAPI frente a Spring Boot; comparación de contratos, arquitectura y modelos |
+| Registrar qué integrar, descartar y adaptar | Tabla de decisiones de integración |
+| Registrar el resultado de la integración | Estado actual de `main`, persistencia PostgreSQL, Open Library e interfaz web |
+| Mantener seguimiento de trabajos futuros | Tabla de pendientes y dependencias |
+| Inventariar avances relevantes | Secciones de Git-Wreckers, Equipo 7 y LosMergeados |
+| Documentar decisiones | ADR y documentación de arquitectura/modelo/API |
+| Mantener responsables e issues | Issues existentes y flujo de trabajo del repositorio |
 
-La entrega documental de #3 queda preparada para revisión. La incorporación de la aplicación, su validación y la publicación de la wiki son pasos separados con seguimiento; no se declaran terminados por este documento. El cierre de #3 y cualquier merge requieren autorización.
+La consolidación de los dos proyectos se considera documentada a nivel de arquitectura, decisiones y estado actual. La evolución posterior se registra mediante las issues, Pull Requests y actualizaciones de la wiki.
 
 [GW]: https://github.com/SE-7003-2027/Git-Wreckers/tree/b79b582b032d779727dce58b42c83797a9a6aa59
 [E7]: https://github.com/SE-7003-2027/Equipo7-RecomendadorLibros/tree/15c30ee6b7d1a926c14f9db91f7888a1929e27a4
