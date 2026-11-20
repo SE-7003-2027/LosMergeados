@@ -1,12 +1,15 @@
 
 package mx.losmergeados.recomendador.book;
 
-import org.springframework.stereotype.Service;
-
 import java.text.Normalizer;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import mx.losmergeados.recomendador.book.source.OpenLibraryBook;
 
 @Service
 public class BookCatalog {
@@ -51,15 +54,64 @@ public class BookCatalog {
             .toList();
     }
 
+    public Optional<Book> findById(long id) {
+        return repository.findById(id)
+            .map(BookEntity::toBook);
+    }
+
+    @Transactional
+    public Book importFromOpenLibrary(
+            OpenLibraryBook externalBook,
+            Format format,
+            PublicationStatus status) {
+
+        if (externalBook == null ||
+                externalBook.sourceId() == null ||
+                externalBook.sourceId().isBlank()) {
+            throw new IllegalArgumentException(
+                "La obra debe tener un identificador de Open Library."
+            );
+        }
+
+        String sourceId = externalBook.sourceId().trim();
+
+        Optional<BookEntity> existing =
+            repository.findBySourceId(sourceId);
+
+        if (existing.isPresent()) {
+            return existing.get().toBook();
+        }
+
+        if (format == null || status == null) {
+            throw new IllegalArgumentException(
+                "El formato y el estatus son obligatorios."
+            );
+        }
+
+        String author = externalBook.authors().isEmpty()
+            ? "Desconocido"
+            : String.join(", ", externalBook.authors());
+
+        String genre = externalBook.subjects().isEmpty()
+            ? "Sin clasificar"
+            : externalBook.subjects().get(0);
+
+        BookEntity entity = new BookEntity(
+            externalBook.title(),
+            author,
+            genre,
+            format,
+            status,
+            sourceId
+        );
+
+        return repository.save(entity).toBook();
+    }
+
     private static String normalize(String value) {
         return Normalizer
             .normalize(value, Normalizer.Form.NFD)
             .replaceAll("\\p{M}+", "")
             .toLowerCase(Locale.ROOT);
-    }
-
-    public Optional<Book> findById(long id) {
-        return repository.findById(id)
-            .map(BookEntity::toBook);
     }
 }

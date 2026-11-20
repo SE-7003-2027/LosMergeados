@@ -1,9 +1,11 @@
 
 package mx.losmergeados.recomendador.book;
+import mx.losmergeados.recomendador.book.source.OpenLibraryBook;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -14,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 
@@ -100,6 +103,18 @@ class BookCatalogTest {
         return entity;
     }
 
+    private OpenLibraryBook externalBook() {
+        return new OpenLibraryBook(
+            "/works/OL45804W",
+            "The Hobbit",
+            List.of("J. R. R. Tolkien"),
+            List.of("Fantasy", "Adventure"),
+            1937,
+            "https://covers.openlibrary.org/b/id/12345-M.jpg",
+            "https://openlibrary.org/works/OL45804W"
+        );
+    }
+
     @Test
     void sinFiltros_devuelveTodoElCatalogo() {
         assertThat(catalog.list(null, null)).hasSize(11);
@@ -183,5 +198,143 @@ class BookCatalogTest {
         assertThat(catalog.list(
                 null, null, "zzzinexistente"))
             .isEmpty();
+    }
+
+
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    @Test
+    void importarObraNueva_guardaEnRepositorio() {
+        OpenLibraryBook external = externalBook();
+
+        BookEntity savedEntity = mock(BookEntity.class);
+
+        when(savedEntity.toBook()).thenReturn(
+            new Book(
+                12L,
+                "The Hobbit",
+                "J. R. R. Tolkien",
+                "Fantasy",
+                Format.BOOK,
+                PublicationStatus.COMPLETED
+            )
+        );
+
+        when(repository.findBySourceId("/works/OL45804W"))
+            .thenReturn(Optional.empty());
+
+        when(repository.save(any(BookEntity.class)))
+            .thenReturn(savedEntity);
+
+        Book result = catalog.importFromOpenLibrary(
+            external,
+            Format.BOOK,
+            PublicationStatus.COMPLETED
+        );
+
+        ArgumentCaptor<BookEntity> captor =
+            ArgumentCaptor.forClass(BookEntity.class);
+
+        verify(repository).save(captor.capture());
+
+        assertThat(result.id()).isEqualTo(12L);
+        assertThat(captor.getValue().getTitle())
+            .isEqualTo("The Hobbit");
+        assertThat(captor.getValue().getAuthor())
+            .isEqualTo("J. R. R. Tolkien");
+        assertThat(captor.getValue().getGenre())
+            .isEqualTo("Fantasy");
+        assertThat(captor.getValue().getSourceId())
+            .isEqualTo("/works/OL45804W");
+    }
+
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    @Test
+    void importarObraExistente_noGuardaDuplicado() {
+        BookEntity existing = mock(BookEntity.class);
+
+        when(repository.findBySourceId("/works/OL45804W"))
+            .thenReturn(Optional.of(existing));
+
+        when(existing.toBook()).thenReturn(
+            new Book(
+                5L,
+                "The Hobbit",
+                "J. R. R. Tolkien",
+                "Fantasy",
+                Format.BOOK,
+                PublicationStatus.COMPLETED
+            )
+        );
+
+        Book result = catalog.importFromOpenLibrary(
+            externalBook(),
+            Format.BOOK,
+            PublicationStatus.COMPLETED
+        );
+
+        assertThat(result.id()).isEqualTo(5L);
+
+        verify(repository, never()).save(any(BookEntity.class));
+    }
+
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    @Test
+    void importarSinSourceId_lanzaExcepcion() {
+        OpenLibraryBook external = new OpenLibraryBook(
+            null,
+            "The Hobbit",
+            List.of("J. R. R. Tolkien"),
+            List.of("Fantasy"),
+            1937,
+            null,
+            null
+        );
+
+        assertThatThrownBy(() ->
+            catalog.importFromOpenLibrary(
+                external,
+                Format.BOOK,
+                PublicationStatus.COMPLETED
+            )
+        )
+        .isInstanceOf(IllegalArgumentException.class);
+
+        verify(repository, never()).save(any(BookEntity.class));
+    }
+
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    @Test
+    void importarSinFormato_lanzaExcepcion() {
+        when(repository.findBySourceId("/works/OL45804W"))
+            .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() ->
+            catalog.importFromOpenLibrary(
+                externalBook(),
+                null,
+                PublicationStatus.COMPLETED
+            )
+        )
+        .isInstanceOf(IllegalArgumentException.class);
+
+        verify(repository, never()).save(any(BookEntity.class));
+    }
+
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    @Test
+    void importarSinEstatus_lanzaExcepcion() {
+        when(repository.findBySourceId("/works/OL45804W"))
+            .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() ->
+            catalog.importFromOpenLibrary(
+                externalBook(),
+                Format.BOOK,
+                null
+            )
+        )
+        .isInstanceOf(IllegalArgumentException.class);
+
+        verify(repository, never()).save(any(BookEntity.class));
     }
 }

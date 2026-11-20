@@ -47,7 +47,12 @@
         groupBy: document.getElementById('group-by'),
         detail: document.getElementById('detail'),
         detailBody: document.getElementById('detail-body'),
-        detailClose: document.getElementById('detail-close')
+        detailClose: document.getElementById('detail-close'),
+        externalSearchForm: document.querySelector('#external-search-form'),
+        externalTitle: document.querySelector('#external-title'),
+        externalSearchButton: document.querySelector('#external-search-button'),
+        externalSearchStatus: document.querySelector('#external-search-status'),
+        externalResults: document.querySelector('#external-results'),
     };
 
     /* ---------- Utilidades de DOM (textContent: nunca innerHTML con datos) ---------- */
@@ -169,6 +174,317 @@
                 el('div', { className: 'grid' }, items.map(bookCard))
             ])
         ));
+    }
+
+    async function searchExternal(event) {
+        event.preventDefault();
+
+        const title = els.externalTitle.value.trim();
+
+        if (!title) {
+            els.externalSearchStatus.textContent = 'Escribe un título para buscar.';
+            els.externalResults.replaceChildren();
+            return;
+        }
+
+        els.externalSearchButton.disabled = true;
+        els.externalSearchStatus.textContent = 'Buscando en Open Library...';
+        els.externalResults.replaceChildren();
+        els.externalResults.setAttribute('aria-busy', 'true');
+
+        try {
+            const response = await fetch(
+                `${API_URL}/external?title=${encodeURIComponent(title)}`,
+                {
+                    headers: {
+                        Accept: 'application/json'
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('No se pudo realizar la búsqueda.');
+            }
+
+            const books = await response.json();
+
+            console.log('Resultados de Open Library:', books);
+
+            if (!books.length) {
+                els.externalSearchStatus.textContent =
+                    'No se encontraron obras con ese título.';
+                return;
+            }
+
+            els.externalSearchStatus.textContent =
+                `${books.length} resultado${books.length === 1 ? '' : 's'} encontrado${books.length === 1 ? '' : 's'}.`;
+
+            renderExternalResults(books);
+
+        } catch (error) {
+            console.error(error);
+            els.externalSearchStatus.textContent =
+                'Ocurrió un error al buscar en Open Library.';
+        } finally {
+            els.externalSearchButton.disabled = false;
+            els.externalResults.setAttribute('aria-busy', 'false');
+        }
+    }
+
+    function renderExternalResults(books) {
+        const fragment = document.createDocumentFragment();
+
+        books.forEach(book => {
+            const card = el('article', {
+                className: 'external-card'
+            });
+
+            if (isSafeCoverUrl(book.coverUrl)) {
+                const image = el('img', {
+                    attrs: {
+                        src: book.coverUrl,
+                        alt: `Portada de ${book.title}`
+                    }
+                });
+
+                card.append(image);
+            }
+
+            card.append(
+                el('h3', {
+                    text: book.title || 'Sin título'
+                })
+            );
+
+            card.append(
+                el('p', {
+                    text: book.authors?.length
+                        ? book.authors.join(', ')
+                        : 'Autor desconocido'
+                })
+            );
+
+            card.append(
+                el('p', {
+                    text: book.firstPublishYear
+                        ? `Primera publicación: ${book.firstPublishYear}`
+                        : 'Año de publicación desconocido'
+                })
+            );
+
+            card.append(
+                el('p', {
+                    text: book.subjects?.length
+                        ? `Género: ${book.subjects[0]}`
+                        : 'Género: Sin clasificar'
+                })
+            );
+
+            if (isSafeSourceUrl(book.sourceUrl)) {
+                const link = el('a', {
+                    text: 'Ver en Open Library',
+                    attrs: {
+                        href: book.sourceUrl,
+                        target: '_blank',
+                        rel: 'noopener noreferrer'
+                    }
+                });
+
+                card.append(link);
+            }
+
+            const formatField = el('label', {
+                className: 'field'
+            });
+
+            formatField.append(
+                el('span', {
+                    className: 'field-label',
+                    text: 'Formato'
+                })
+            );
+
+            const formatSelect = createFormatSelect();
+            formatField.append(formatSelect);
+
+            card.append(formatField);
+
+            const statusField = el('label', {
+                className: 'field'
+            });
+
+            statusField.append(
+                el('span', {
+                    className: 'field-label',
+                    text: 'Estado'
+                })
+            );
+
+            const statusSelect = createStatusSelect();
+            statusField.append(statusSelect);
+
+            card.append(statusField);
+
+            const importButton = el('button', {
+                className: 'btn',
+                text: 'Agregar al catálogo',
+                attrs: {
+                    type: 'button'
+                }
+            });
+
+            importButton.addEventListener('click', () => {
+                importExternalBook(
+                    book,
+                    formatSelect,
+                    statusSelect,
+                    importButton
+                );
+            });
+
+            card.append(importButton);
+
+            fragment.append(card);
+        });
+
+        els.externalResults.replaceChildren(fragment);
+    }
+
+    function createFormatSelect() {
+        const select = el('select', {
+            attrs: {
+                required: 'true'
+            }
+        });
+
+        select.append(
+            el('option', {
+                text: 'Selecciona un formato',
+                attrs: {
+                    value: ''
+                }
+            })
+        );
+
+        Object.entries(FORMATS).forEach(([value, label]) => {
+            select.append(
+                el('option', {
+                    text: label,
+                    attrs: {
+                        value
+                    }
+                })
+            );
+        });
+
+        return select;
+    }
+
+    function createStatusSelect() {
+        const select = el('select', {
+            attrs: {
+                required: 'true'
+            }
+        });
+
+        select.append(
+            el('option', {
+                text: 'Selecciona un estado',
+                attrs: {
+                    value: ''
+                }
+            })
+        );
+
+        Object.entries(STATUSES).forEach(([value, label]) => {
+            select.append(
+                el('option', {
+                    text: label,
+                    attrs: {
+                        value
+                    }
+                })
+            );
+        });
+
+        return select;
+    }
+
+    function isSafeCoverUrl(value) {
+    try {
+        const url = new URL(value);
+
+        return (
+            url.protocol === 'https:' &&
+            url.hostname === 'covers.openlibrary.org'
+        );
+    } catch {
+        return false;
+    }
+}
+
+    function isSafeSourceUrl(value) {
+        try {
+            const url = new URL(value);
+
+            return (
+                url.protocol === 'https:' &&
+                (
+                    url.hostname === 'openlibrary.org' ||
+                    url.hostname.endsWith('.openlibrary.org')
+                )
+            );
+        } catch {
+            return false;
+        }
+    }
+
+    async function importExternalBook(book, formatSelect, statusSelect, button) {
+        if (!formatSelect.value || !statusSelect.value) {
+            els.externalSearchStatus.textContent =
+                'Selecciona el formato y el estado antes de agregar la obra.';
+            return;
+        }
+
+        button.disabled = true;
+        button.textContent = 'Agregando...';
+
+        try {
+            const response = await fetch(`${API_URL}/import`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                },
+                body: JSON.stringify({
+                    book,
+                    format: formatSelect.value,
+                    status: statusSelect.value
+                })
+            });
+
+            if (!response.ok) {
+                const message = await response.text();
+                throw new Error(message || 'No se pudo importar la obra.');
+            }
+
+            const importedBook = await response.json();
+
+            button.textContent = 'Agregada al catálogo';
+            els.externalSearchStatus.textContent =
+                `"${importedBook.title}" fue agregada correctamente.`;
+
+            await load();
+
+        } catch (error) {
+            console.error(error);
+
+            button.disabled = false;
+            button.textContent = 'Agregar al catálogo';
+
+            els.externalSearchStatus.textContent =
+                'No se pudo agregar la obra al catálogo.';
+        }
     }
 
     function renderError() {
@@ -409,6 +725,9 @@
     }
     buildControls();
     setupDetail();
+
+    els.externalSearchForm.addEventListener('submit', searchExternal);
+
     load();
     route();
 })();
