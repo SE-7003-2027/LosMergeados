@@ -1,113 +1,27 @@
-
 ---
 title: "API REST"
 ---
 
 URL base en local: `http://localhost:8080`
 
-La documentación interactiva (generada automáticamente con OpenAPI) está en <http://localhost:8080/swagger-ui.html>. Desde ahí se puede probar cada endpoint sin escribir comandos.
+La documentación interactiva, generada automáticamente con OpenAPI, está disponible en `http://localhost:8080/swagger-ui.html`. Desde ahí se puede consultar y probar cada endpoint sin escribir comandos.
 
 ## Endpoints
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/api/books` | Lista y busca obras, con filtros opcionales `format`, `status` y `q` |
+| GET | `/api/books` | Lista y busca obras del catálogo local, con filtros opcionales `format`, `status` y `q` |
+| GET | `/api/books/{id}` | Devuelve el detalle de una obra del catálogo local |
 | GET | `/api/books/external?title={title}` | Busca obras en Open Library por título |
-| GET | `/api/books/{id}` | Detalle de una obra |
+| POST | `/api/books/import` | Importa una obra seleccionada de Open Library al catálogo local |
 | GET | `/api/health` | Estado del servicio |
 | GET | `/v3/api-docs` | Especificación OpenAPI en JSON |
 
 ## GET /api/books
 
-Devuelve las obras del catálogo. Sin parámetros devuelve todas; la búsqueda textual y los filtros se pueden combinar.
+Devuelve las obras almacenadas en el catálogo local. La información se obtiene mediante `BookRepository` desde PostgreSQL.
 
-GET /api/books/external
-
-Busca obras en el catálogo externo de Open Library por título. Este endpoint permite consultar información externa sin modificar ni mezclar los resultados con el catálogo interno de la aplicación.
-
-Parámetros de consulta
-
-Parámetro
-
-Descripción
-
-Ejemplo
-
-title
-
-Título de la obra que se desea buscar
-
-/api/books/external?title=The%20Hobbit
-
-El parámetro title es obligatorio. Si se proporciona un título vacío o compuesto únicamente por espacios, el servicio devuelve una lista vacía.
-
-Respuesta exitosa — 200 OK, application/json
-
-Devuelve una lista de obras obtenidas de Open Library. Cada elemento puede incluir los siguientes campos:
-
-Campo
-
-Descripción
-
-sourceId
-
-Identificador de la obra en Open Library
-
-title
-
-Título de la obra
-
-authors
-
-Lista de autores
-
-subjects
-
-Lista de temas asociados
-
-firstPublishYear
-
-Año de primera publicación, si está disponible
-
-coverUrl
-
-URL de la portada, si está disponible
-
-sourceUrl
-
-URL de la obra en Open Library
-
-Los campos opcionales pueden tener valor null cuando la fuente no proporciona la información. Las listas de autores y temas se representan como listas vacías cuando no hay datos disponibles.
-
-Si no existen resultados, la respuesta es 200 OK con una lista vacía ([]).
-
-Si se omite el parámetro obligatorio title, la API responde 400 Bad Request.
-
-Si ocurre un error al consultar Open Library, la API responde 502 Bad Gateway, utilizando el formato Problem Details.
-
-Ejemplos de consulta
-
-Buscar una obra:
-
-GET /api/books/external?title=The%20Hobbit
-
-Búsqueda sin resultados:
-
-GET /api/books/external?title=zzzinexistente
-
-Respuesta:
-
-[]
-
-Implementación actual
-
-El controlador BookController recibe la solicitud y delega la búsqueda a OpenLibraryClient. El cliente consulta el endpoint /search.json de Open Library y procesa un máximo de diez resultados.
-
-Las obras externas se representan mediante OpenLibraryBook, un DTO que conserva los identificadores de la fuente externa. Estos identificadores no se confunden con los identificadores del catálogo interno.
-
-Los errores de comunicación con Open Library se convierten en OpenLibraryException. GlobalExceptionHandler los transforma en respuestas HTTP 502 Bad Gateway, sin exponer detalles internos del servidor.
-
-La consulta externa no agrega, modifica ni elimina obras del catálogo interno.
+Sin parámetros devuelve las obras disponibles en el catálogo. La búsqueda textual y los filtros se pueden combinar.
 
 ### Parámetros de consulta
 
@@ -119,7 +33,9 @@ La consulta externa no agrega, modifica ni elimina obras del catálogo interno.
 
 Todos los parámetros son opcionales.
 
-**Respuesta** — `200 OK`, `application/json`
+### Respuesta
+
+**200 OK**, `application/json`
 
 ```json
 [
@@ -134,11 +50,11 @@ Todos los parámetros son opcionales.
 ]
 ```
 
-Si ninguna obra cumple los filtros, la respuesta es `200` con una lista vacía (`[]`).
+Si ninguna obra cumple los filtros, la respuesta es `200 OK` con una lista vacía (`[]`).
 
 Un valor de formato o estatus que no existe, por ejemplo `?format=REVISTA`, responde `400 Bad Request`.
 
-Los valores posibles de `format` y `status` están en [Modelo de datos](Modelo-de-datos).
+Los valores posibles de `format` y `status` están documentados en [Modelo de datos](Modelo-de-datos).
 
 ### Búsqueda textual
 
@@ -148,17 +64,16 @@ El parámetro opcional `q` permite buscar obras por:
 - Autor.
 - Género.
 
-La búsqueda se realiza desde el backend mediante `BookCatalog`.
+La consulta puede combinarse con los filtros `format` y `status`.
 
-**Características:**
+La normalización de la búsqueda permite:
 
-- No distingue entre mayúsculas y minúsculas.
-- Ignora acentos y marcas diacríticas.
-- Permite coincidencias parciales de texto.
-- Elimina espacios al principio y al final de la consulta.
-- Puede combinarse con los filtros `format` y `status`.
-- Devuelve `[]` cuando no existen coincidencias.
-- Una consulta vacía devuelve las obras correspondientes a los demás filtros.
+- No distinguir entre mayúsculas y minúsculas.
+- Ignorar acentos y marcas diacríticas.
+- Permitir coincidencias parciales.
+- Eliminar espacios al principio y al final de la consulta.
+- Devolver `[]` cuando no existen coincidencias.
+- Utilizar una consulta vacía junto con los demás filtros.
 
 ### Ejemplos de búsqueda
 
@@ -166,31 +81,21 @@ La búsqueda se realiza desde el backend mediante `BookCatalog`.
 
 `GET /api/books?q=Dune`
 
-Resultado esperado: Dune, de Frank Herbert.
-
 **Buscar por autor:**
 
 `GET /api/books?q=Herbert`
-
-Resultado esperado: Dune.
 
 **Buscar ignorando acentos:**
 
 `GET /api/books?q=anos`
 
-Resultado esperado: Cien años de soledad.
-
 **Buscar por género:**
 
 `GET /api/books?q=superheroes`
 
-Resultado esperado: Watchmen.
-
 **Combinar búsqueda, formato y estatus:**
 
 `GET /api/books?q=One&format=MANGA&status=ONGOING`
-
-Resultado esperado: One Piece.
 
 **Búsqueda sin coincidencias:**
 
@@ -204,29 +109,15 @@ Respuesta:
 
 ### Implementación actual
 
-La búsqueda utiliza las once obras de demostración almacenadas en memoria.
+El controlador `BookController` recibe los parámetros HTTP y delega las operaciones de catálogo a `BookCatalog`.
 
-El controlador `BookController` recibe los parámetros HTTP y delega la búsqueda al servicio `BookCatalog`.
+El catálogo utiliza `BookRepository` para acceder a las obras persistidas mediante Spring Data JPA. La persistencia se realiza en PostgreSQL.
 
-El servicio normaliza el texto mediante `java.text.Normalizer` y aplica los filtros combinados sobre las obras.
-
-El catálogo interno continúa utilizando once obras de demostración almacenadas en memoria. La consulta de Open Library está disponible mediante el endpoint independiente `/api/books/external`; sus resultados no se incorporan automáticamente al catálogo interno.
-
-La búsqueda del backend fue ampliada con diez pruebas automatizadas nuevas: cinco del servicio y cinco de la API REST.
-
-**Validación local del 26 de octubre de 2026:**
-
-- 42 pruebas ejecutadas.
-- 0 fallos.
-- 0 errores.
-- 0 pruebas omitidas.
-- Resultado: `BUILD SUCCESS`.
-
-Esta validación corresponde a la rama local de desarrollo. No implica que los cambios estén integrados en `main` ni que las interacciones de búsqueda del frontend estén terminadas.
+El modelo utilizado para las respuestas de la API es `Book`, mientras que `BookEntity` representa los registros persistidos.
 
 ## GET /api/books/{id}
 
-Devuelve una obra.
+Devuelve una obra específica del catálogo local.
 
 | Caso | Respuesta |
 |---|---|
@@ -234,11 +125,122 @@ Devuelve una obra.
 | No existe | `404 Not Found` con `"detail": "Obra no encontrada"` |
 | El id no es numérico (`/api/books/abc`) | `400 Bad Request` |
 
-La vista web usa este endpoint para abrir el detalle al hacer clic en una tarjeta (ver [Vista web](Vista-web)).
+La vista web utiliza este endpoint para abrir el detalle de una obra.
+
+## GET /api/books/external
+
+Busca obras en el catálogo externo de **Open Library** por título. Este endpoint permite consultar información externa sin modificar el catálogo interno.
+
+### Parámetros de consulta
+
+| Parámetro | Descripción | Ejemplo |
+|---|---|---|
+| `title` | Título de la obra que se desea buscar | `/api/books/external?title=The%20Hobbit` |
+
+El parámetro `title` es obligatorio. Si se proporciona un título vacío o compuesto únicamente por espacios, el servicio devuelve una lista vacía.
+
+### Respuesta exitosa
+
+**200 OK**, `application/json`
+
+Devuelve una lista de obras obtenidas de Open Library. Cada elemento puede incluir:
+
+| Campo | Descripción |
+|---|---|
+| `sourceId` | Identificador de la obra en Open Library |
+| `title` | Título de la obra |
+| `authors` | Lista de autores |
+| `subjects` | Lista de temas asociados |
+| `firstPublishYear` | Año de primera publicación, si está disponible |
+| `coverUrl` | URL de la portada, si está disponible |
+| `sourceUrl` | URL de la obra en Open Library |
+
+Los campos opcionales pueden tener valor `null` cuando la fuente no proporciona la información. Las listas de autores y temas se representan como listas vacías cuando no hay datos disponibles.
+
+Si no existen resultados, la respuesta es `200 OK` con una lista vacía (`[]`).
+
+Si se omite el parámetro obligatorio `title`, la API responde `400 Bad Request`.
+
+Si ocurre un error al consultar Open Library, la API responde `502 Bad Gateway` utilizando el formato Problem Details.
+
+### Ejemplos
+
+**Buscar una obra:**
+
+`GET /api/books/external?title=The%20Hobbit`
+
+**Búsqueda sin resultados:**
+
+`GET /api/books/external?title=zzzinexistente`
+
+Respuesta:
+
+```json
+[]
+```
+
+### Implementación actual
+
+El controlador `BookController` recibe la solicitud y delega la búsqueda a `OpenLibraryClient`.
+
+El cliente consulta el endpoint `/search.json` de Open Library y procesa como máximo diez resultados.
+
+Las obras externas se representan mediante `OpenLibraryBook`, un DTO que conserva los identificadores de la fuente externa. Estos identificadores son independientes de los identificadores del catálogo interno.
+
+Los errores de comunicación con Open Library se convierten en `OpenLibraryException`. El manejo global de excepciones los transforma en respuestas HTTP `502 Bad Gateway`, sin exponer detalles internos del servidor.
+
+La consulta externa por sí sola no agrega, modifica ni elimina obras del catálogo interno.
+
+## POST /api/books/import
+
+Importa una obra seleccionada de Open Library al catálogo local.
+
+Este endpoint recibe la información de una obra externa junto con el formato y el estatus que tendrá dentro del catálogo.
+
+### Cuerpo de la solicitud
+
+```json
+{
+  "book": {
+    "sourceId": "OL123456W",
+    "title": "The Hobbit",
+    "authors": [
+      "J. R. R. Tolkien"
+    ],
+    "subjects": [
+      "Fantasy"
+    ],
+    "firstPublishYear": 1937,
+    "coverUrl": "https://covers.openlibrary.org/...",
+    "sourceUrl": "https://openlibrary.org/works/OL123456W"
+  },
+  "format": "BOOK",
+  "status": "COMPLETED"
+}
+```
+
+El campo `book` contiene la obra obtenida de Open Library. `format` y `status` corresponden a los valores del modelo interno.
+
+### Comportamiento
+
+Al importar una obra:
+
+1. Se valida que exista un identificador de fuente.
+2. Se comprueba si ya existe una obra con ese `sourceId`.
+3. Si no existe, se transforma la información externa al modelo interno.
+4. Se crea la entidad `BookEntity`.
+5. Se guarda mediante `BookRepository`.
+6. Se devuelve la obra incorporada al catálogo.
+
+La importación es idempotente respecto a `sourceId`: si la obra ya fue importada, no se crea un registro duplicado.
+
+El identificador de Open Library se almacena como `sourceId` y es diferente del `id` utilizado por el catálogo local.
 
 ## Formato de los errores
 
-Los errores siguen el estándar *Problem Details* (RFC 9457), con tipo de contenido `application/problem+json`:
+Los errores siguen el estándar **Problem Details** (RFC 9457), con tipo de contenido `application/problem+json`.
+
+Ejemplo:
 
 ```json
 {
@@ -250,13 +252,35 @@ Los errores siguen el estándar *Problem Details* (RFC 9457), con tipo de conten
 }
 ```
 
-Nunca se incluye información interna del servidor (trazas de error).
+La aplicación no incluye trazas internas del servidor en las respuestas HTTP.
 
 ## GET /api/health
 
-Responde `{"status": "ok"}` cuando la aplicación está arriba.
+Responde:
 
-## Probarlo desde la terminal
+```json
+{
+  "status": "ok"
+}
+```
+
+cuando la aplicación está disponible.
+
+## OpenAPI
+
+La especificación de la API se genera automáticamente mediante OpenAPI.
+
+La interfaz Swagger UI está disponible en:
+
+`http://localhost:8080/swagger-ui.html`
+
+La especificación en formato JSON está disponible en:
+
+`http://localhost:8080/v3/api-docs`
+
+## Probar la API desde la terminal
+
+Con la aplicación ejecutándose localmente:
 
 ```bash
 curl http://localhost:8080/api/books
@@ -272,12 +296,16 @@ curl http://localhost:8080/api/books/3
 curl http://localhost:8080/api/health
 ```
 
+Para importar una obra mediante terminal se debe enviar una solicitud `POST` con un cuerpo JSON que contenga la obra externa, su formato y su estatus.
+
 En Windows PowerShell también se puede utilizar `curl.exe`.
 
 ## Pendiente
 
-- Validar el flujo completo de búsqueda y detalle desde el navegador (issue #9).
-- Paginación.
-- Registro, inicio de sesión y valoraciones (RF01, RF02, RF07).
-- Endpoint de recomendaciones (RF09).
-- Persistencia e integración de fuentes externas según las tareas correspondientes.
+- Paginación del catálogo y de las búsquedas.
+- Registro e inicio de sesión.
+- Valoraciones de usuarios.
+- Historial y preferencias.
+- Endpoint de recomendaciones.
+- Ampliación del modelo de datos para las nuevas funcionalidades.
+- Migración de la gestión del esquema de Hibernate (`ddl-auto=update`) a Flyway.

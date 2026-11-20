@@ -2,9 +2,11 @@
 title: "Modelo de datos"
 ---
 
-Por ahora existe una sola entidad, **Book**, que representa cualquier obra del catálogo: libro, cómic o manga. Está definida en `src/main/java/mx/losmergeados/recomendador/book/Book.java`.
+El sistema utiliza un modelo de dominio basado en una sola entidad conceptual, **Book**, que representa cualquier obra del catálogo: libro, cómic o manga. Está definida en `src/main/java/mx/losmergeados/recomendador/book/Book.java`.
 
-## Campos
+Para la persistencia se utiliza además `BookEntity`, definida en `src/main/java/mx/losmergeados/recomendador/book/BookEntity.java`. Esta clase representa el registro de una obra dentro de PostgreSQL y permite separar el modelo de dominio de la representación utilizada por JPA.
+
+## Campos de `Book`
 
 | Campo | Tipo | Descripción | Ejemplo |
 |---|---|---|---|
@@ -12,8 +14,8 @@ Por ahora existe una sola entidad, **Book**, que representa cualquier obra del c
 | `title` | `String` | Título de la obra | `"Akira"` |
 | `author` | `String` | Autor o autora | `"Katsuhiro Otomo"` |
 | `genre` | `String` | Género principal | `"Ciencia ficción"` |
-| `format` | `Format` (enum) | Formato de la obra | `"MANGA"` |
-| `status` | `PublicationStatus` (enum) | Estatus de publicación | `"COMPLETED"` |
+| `format` | `Format` (enum) | Formato de la obra | `MANGA` |
+| `status` | `PublicationStatus` (enum) | Estatus de publicación | `COMPLETED` |
 
 ## Valores de `format`
 
@@ -32,39 +34,89 @@ Por ahora existe una sola entidad, **Book**, que representa cualquier obra del c
 | `HIATUS` | En pausa | Publicación detenida temporalmente |
 | `CANCELLED` | Cancelado | La publicación se canceló |
 
-Si se agrega un valor nuevo hay que actualizarlo en el `enum` correspondiente (`Format.java` o `PublicationStatus.java`), en la vista (`static/js/app.js`) y en esta página.
+Si se agrega un valor nuevo, debe actualizarse el `enum` correspondiente (`Format.java` o `PublicationStatus.java`) y las partes de la interfaz que utilicen esos valores.
 
-## Datos de demostración
+## Persistencia
 
-Combinan el catálogo de ejemplo de ambos equipos de origen.
+La información del catálogo se almacena actualmente en **PostgreSQL**, mediante **Spring Data JPA** e **Hibernate**.
 
-| # | Título | Autor | Género | Formato | Estatus |
-|---|---|---|---|---|---|
-| 1 | El nombre del viento | Patrick Rothfuss | Fantasía | BOOK | ONGOING |
-| 2 | Akira | Katsuhiro Otomo | Ciencia ficción | MANGA | COMPLETED |
-| 3 | Watchmen | Alan Moore | Superhéroes | COMIC | COMPLETED |
-| 4 | Dune | Frank Herbert | Ciencia ficción | BOOK | COMPLETED |
-| 5 | Berserk | Kentaro Miura | Fantasía oscura | MANGA | ONGOING |
-| 6 | Saga | Brian K. Vaughan | Ciencia ficción | COMIC | HIATUS |
-| 7 | La sombra del viento | Carlos Ruiz Zafón | Misterio | BOOK | COMPLETED |
-| 8 | Fullmetal Alchemist | Hiromu Arakawa | Acción | MANGA | COMPLETED |
-| 9 | Cien años de soledad | Gabriel García Márquez | Realismo mágico | BOOK | COMPLETED |
-| 10 | Death Note | Tsugumi Ohba | Thriller | MANGA | COMPLETED |
-| 11 | One Piece | Eiichiro Oda | Aventura | MANGA | ONGOING |
+La relación entre las clases principales es:
 
-> Estos datos son de prueba y viven en memoria (`BookCatalog.java`). No hay obras con estatus `CANCELLED` todavía.
+```text
+Book
+ │
+ │ conversión
+ ▼
+BookEntity
+ │
+ ▼
+BookRepository
+ │
+ ▼
+PostgreSQL (Neon)
+```
 
-## Modelo objetivo
+`BookEntity` contiene los campos del modelo de dominio y además incorpora información necesaria para identificar el origen de una obra, como `sourceId`. Este campo permite evitar que una misma obra proveniente de una fuente externa se importe varias veces.
 
-El [SPIKE de fuentes de datos](Fuentes-de-datos-y-APIs) propone un modelo normalizado para que el sistema no dependa de la estructura de una API específica. Comparado con el modelo actual:
+El repositorio `BookRepository` se encarga de las operaciones de acceso a datos y extiende `JpaRepository`.
 
-| Campo propuesto | Estado actual |
-|---|---|
-| `id`, `title`, `type` | ✅ Existen (`type` = `format`) |
-| `authors`, `genres` | 🟡 Existen como un solo valor (`author`, `genre`); pasarán a listas |
-| `status` (estatus de publicación) | ✅ Existe (aportado por Equipo 7) |
-| `source`, `sourceId`, `sourceUrl`, `retrievedAt` | 📋 Al integrar fuentes externas |
-| `alternateTitles`, `artists`, `publisher`, `description`, `tags`, `coverUrl`, `language`, `publicationDate` | 📋 Al integrar fuentes externas |
-| `availability` (disponibilidad en México) | 📋 Solo cuando la fuente la proporcione (RF06) |
+Actualmente el esquema de la base de datos es administrado por Hibernate mediante:
 
-Además faltan las entidades de **usuario**, **preferencias** y **valoración** (una valoración vigente por usuario y obra, según el [PRD](PRD)), necesarias para el motor de recomendaciones.
+```properties
+spring.jpa.hibernate.ddl-auto=update
+```
+
+Posteriormente se planea incorporar **Flyway** para gestionar las migraciones del esquema de forma explícita y versionada.
+
+## Integración con fuentes externas
+
+Las obras pueden obtenerse desde **Open Library** antes de incorporarse al catálogo local.
+
+La información externa se representa mediante `OpenLibraryBook`, que contiene datos como:
+
+- `sourceId`
+- `title`
+- `authors`
+- `subjects`
+- `firstPublishYear`
+- `coverUrl`
+- `sourceUrl`
+
+No todos estos datos forman parte actualmente de `Book`. Al importar una obra, se transforma la información externa al modelo interno y se asignan el formato y estatus correspondientes.
+
+El flujo principal es:
+
+```text
+Open Library
+     │
+     ▼
+OpenLibraryBook
+     │
+     ▼
+BookCatalog.importFromOpenLibrary(...)
+     │
+     ▼
+BookEntity
+     │
+     ▼
+PostgreSQL
+```
+
+La importación es idempotente respecto a `sourceId`: si una obra con el mismo identificador de origen ya existe, no se crea un registro duplicado.
+
+## Modelo futuro
+
+El modelo actual todavía es deliberadamente sencillo. Conforme se incorporen nuevas funcionalidades, se prevé ampliar la información de las obras y agregar nuevas entidades.
+
+Entre las extensiones previstas se encuentran:
+
+- Información más completa de las obras proveniente de fuentes externas.
+- Géneros y autores como estructuras que permitan múltiples valores.
+- Disponibilidad de la obra en México.
+- Entidad de **usuario**.
+- Preferencias de usuario.
+- Valoraciones de obras.
+- Historial de interacción.
+- Información necesaria para el motor de recomendaciones.
+
+Estas extensiones se implementarán conforme avance el proyecto y se definan sus requisitos en el PRD y en las decisiones de arquitectura correspondientes.
