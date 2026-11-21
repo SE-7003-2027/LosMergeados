@@ -26,39 +26,41 @@ La comunicación principal entre frontend y backend se realiza mediante HTTP uti
 
 La arquitectura actual es:
 
-```text
-                         ┌─────────────────┐
-                         │     Usuario     │
-                         └────────┬────────┘
-                                  │
-                                  ▼
-                         ┌─────────────────┐
-                         │    Frontend     │
-                         │ HTML / CSS / JS │
-                         └────────┬────────┘
-                                  │
-                              HTTP / REST
-                                  │
-                                  ▼
-                         ┌─────────────────┐
-                         │    Spring Boot  │
-                         │     Backend     │
-                         └───────┬─┬───────┘
-                                 │ │
-                    ┌────────────┘ └────────────┐
-                    │                           │
-                    ▼                           ▼
-           ┌─────────────────┐         ┌─────────────────┐
-           │ Spring Data JPA │         │  Open Library   │
-           │    + Hibernate  │         │       API       │
-           └────────┬────────┘         └─────────────────┘
-                    │
-                    ▼
-           ┌─────────────────┐
-           │   PostgreSQL    │
-           │      Neon       │
-           └─────────────────┘
-```
+
+                        ┌─────────────────┐
+                        │     Usuario     │
+                        └────────┬────────┘
+                                 │
+                                 ▼
+                        ┌─────────────────┐
+                        │    Frontend     │
+                        │ HTML / CSS / JS │
+                        └────────┬────────┘
+                                 │
+                             HTTP / REST
+                                 │
+                                 ▼
+                        ┌─────────────────┐
+                        │    Spring Boot  │
+                        │     Backend     │
+                        └───────┬─┬─┬─────┘
+                                │ │ │
+                  ┌─────────────┘ │ └──────────────┐
+                  │               │                │
+                  ▼               ▼                ▼
+         ┌─────────────────┐ ┌─────────────┐ ┌─────────────────┐
+         │ Spring Data JPA │ │   Flyway    │ │  Open Library   │
+         │    + Hibernate  │ │ Migraciones │ │       API       │
+         └────────┬────────┘ └──────┬──────┘ └─────────────────┘
+                  │                │
+                  └────────┬───────┘
+                           │
+                           ▼
+                  ┌─────────────────┐
+                  │   PostgreSQL    │
+                  │      Neon       │
+                  └─────────────────┘
+
 
 El backend funciona como intermediario entre el frontend, la base de datos y las fuentes externas.
 
@@ -179,15 +181,55 @@ La tabla principal del catálogo contiene información como:
 
 El identificador de Open Library se almacena como `sourceId` y tiene una restricción de unicidad para evitar importar varias veces la misma obra.
 
-Actualmente Hibernate está configurado mediante:
+### Gestión del esquema mediante Flyway
 
-```properties
-spring.jpa.hibernate.ddl-auto=update
-```
+La evolución del esquema de la base de datos se administra mediante Flyway, que permite definir migraciones SQL versionadas y ejecutarlas de manera controlada.
 
-Esto permite que Hibernate actualice el esquema de la base de datos de acuerdo con las entidades durante la etapa actual de desarrollo.
+Los archivos de migración se encuentran en:
 
-Para una etapa posterior se contempla incorporar un sistema de migraciones de base de datos, como Flyway, para controlar explícitamente la evolución del esquema.
+src/main/resources/db/migration/
+
+Actualmente se cuenta con la migración inicial:
+
+V1__initial_schema.sql
+
+Esta migración define la estructura inicial de la tabla books, incluyendo sus columnas, clave primaria y restricción de unicidad para source_id.
+
+Flyway registra las migraciones ejecutadas en la tabla flyway_schema_history, lo que permite conocer qué versiones del esquema se han aplicado.
+
+La configuración de producción utiliza:
+
+spring.flyway.enabled=true
+
+Hibernate está configurado mediante:
+
+spring.jpa.hibernate.ddl-auto=validate
+
+Esto establece una separación de responsabilidades:
+
+* Flyway: administra los cambios y la evolución del esquema mediante migraciones SQL.
+
+* Hibernate: valida que el esquema existente sea compatible con las entidades Java.
+
+* Spring Data JPA: proporciona las operaciones de persistencia utilizadas por la aplicación.
+
+De esta manera, Hibernate ya no modifica automáticamente la estructura de PostgreSQL.
+
+### Configuración de pruebas
+
+Las pruebas automatizadas utilizan una base de datos temporal H2, configurada en src/test/resources/application.properties.
+
+En este entorno Hibernate utiliza create-drop para crear y eliminar el esquema temporal, mientras que Flyway permanece desactivado.
+
+Esta separación permite ejecutar las pruebas sin modificar la base de datos PostgreSQL utilizada durante el desarrollo.
+
+### Integración con la base de datos existente
+
+Flyway se incorporó a una base de datos Neon que ya contenía registros en la tabla books.
+
+Para adoptar el esquema existente se utilizó la funcionalidad de baseline de Flyway, registrando la versión inicial como punto de partida sin ejecutar nuevamente la migración sobre la tabla existente.
+
+La adopción se verificó mediante flyway_schema_history, conservando los registros originales del catálogo.
 
 ---
 
@@ -375,6 +417,8 @@ Este diseño permite mantener separadas las responsabilidades de presentación, 
 
 ---
 
+**Una precisión:** no estamos afirmando que todas las futuras migraciones estén implementadas. Actualmente existe V1; las modificaciones futuras deberán agregarse como nuevas versiones, por ejemplo `V2__...sql`.
+
 ## 9. Organización del backend
 
 El código se organiza por funcionalidad, manteniendo separadas las responsabilidades dentro de cada componente.
@@ -403,14 +447,15 @@ src/main/java/mx/losmergeados/recomendador/
 
 Los recursos de la aplicación se organizan de la siguiente manera:
 
-```text
 src/main/resources/
 ├── application.properties
+├── db/
+│   └── migration/
+│       └── V1__initial_schema.sql
 └── static/
     ├── index.html
     ├── css/
     └── js/
-```
 
 Las pruebas automatizadas se encuentran en:
 
@@ -495,7 +540,7 @@ Para una futura configuración de producción deberán considerarse:
 * Credenciales y secretos.
 * Comunicación segura entre servicios.
 * Costos y limitaciones de los servicios utilizados.
-* Estrategia de migraciones de la base de datos.
+* Configuración y ejecución controlada de las migraciones de Flyway en el entorno de despliegue.
 
 ---
 
@@ -543,6 +588,8 @@ Las principales decisiones técnicas actuales son:
 | API | Spring Web / REST |
 | Documentación de API | OpenAPI / Swagger UI |
 | Persistencia | Spring Data JPA + Hibernate |
+| Migraciones de base de datos | Flyway |
+| Validación del esquema | Hibernate `ddl-auto=validate` |
 | Base de datos | PostgreSQL |
 | Proveedor de base de datos | Neon |
 | Integración externa | Open Library API |
@@ -569,7 +616,6 @@ Todavía quedan algunas decisiones por definir:
 * Incorporación de recomendaciones personalizadas.
 * Posible incorporación de filtrado colaborativo.
 * Estrategia definitiva de despliegue.
-* Sistema de migraciones de la base de datos.
 * Modelo para representar obras, ediciones y volúmenes cuando el sistema lo requiera.
 
 Estas decisiones se irán definiendo conforme avance el desarrollo.
@@ -592,9 +638,9 @@ Los tres documentos deberán mantenerse alineados conforme avance el proyecto.
 
 ## 17. Estado del documento
 
-**Versión:** 2.0
+**Versión:** 2.1
 
-**Estado:** Arquitectura actualizada conforme a la implementación actual del proyecto, incluyendo persistencia PostgreSQL mediante Spring Data JPA, base de datos alojada en Neon e integración con Open Library.
+**Estado:** Arquitectura actualizada conforme a la implementación actual del proyecto, incluyendo persistencia PostgreSQL mediante Spring Data JPA, base de datos alojada en Neon, migraciones versionadas mediante Flyway, validación del esquema con Hibernate e integración con Open Library.
 
 Esta arquitectura representa el estado actual de la implementación y también identifica los componentes previstos para futuras etapas del sistema.
 

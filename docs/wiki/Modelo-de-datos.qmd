@@ -38,11 +38,10 @@ Si se agrega un valor nuevo, debe actualizarse el `enum` correspondiente (`Forma
 
 ## Persistencia
 
-La información del catálogo se almacena actualmente en **PostgreSQL**, mediante **Spring Data JPA** e **Hibernate**.
+La información del catálogo se almacena actualmente en PostgreSQL, mediante Spring Data JPA e Hibernate.
 
 La relación entre las clases principales es:
 
-```text
 Book
  │
  │ conversión
@@ -54,19 +53,34 @@ BookRepository
  │
  ▼
 PostgreSQL (Neon)
-```
 
-`BookEntity` contiene los campos del modelo de dominio y además incorpora información necesaria para identificar el origen de una obra, como `sourceId`. Este campo permite evitar que una misma obra proveniente de una fuente externa se importe varias veces.
+BookEntity contiene los campos del modelo de dominio y además incorpora información necesaria para identificar el origen de una obra, como sourceId. Este campo permite evitar que una misma obra proveniente de una fuente externa se importe varias veces.
 
-El repositorio `BookRepository` se encarga de las operaciones de acceso a datos y extiende `JpaRepository`.
+El repositorio BookRepository se encarga de las operaciones de acceso a datos y extiende JpaRepository.
 
-Actualmente el esquema de la base de datos es administrado por Hibernate mediante:
+### Gestión del esquema mediante Flyway
 
-```properties
-spring.jpa.hibernate.ddl-auto=update
-```
+La estructura de la base de datos se administra mediante Flyway, que permite definir migraciones SQL versionadas.
 
-Posteriormente se planea incorporar **Flyway** para gestionar las migraciones del esquema de forma explícita y versionada.
+Los archivos de migración se encuentran en:
+
+src/main/resources/db/migration/
+
+Actualmente se cuenta con la migración inicial V1__initial_schema.sql, que define la estructura de la tabla books.
+
+Flyway registra las migraciones ejecutadas en la tabla flyway_schema_history.
+
+La configuración de producción utiliza:
+
+spring.flyway.enabled=true
+
+Por su parte, Hibernate utiliza:
+
+spring.jpa.hibernate.ddl-auto=validate
+
+Esto significa que Flyway administra los cambios en el esquema, mientras que Hibernate únicamente comprueba que la estructura existente sea compatible con las entidades Java.
+
+En el entorno de pruebas se utiliza una base de datos temporal H2. Hibernate emplea create-drop para generar su esquema y Flyway permanece desactivado, evitando que las pruebas dependan de la base de datos PostgreSQL de desarrollo.
 
 ## Integración con fuentes externas
 

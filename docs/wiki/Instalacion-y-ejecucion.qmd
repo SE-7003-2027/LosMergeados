@@ -14,6 +14,8 @@ No es necesario instalar PostgreSQL ni Docker localmente para ejecutar la config
 
 Para publicar la wiki también se necesita **Quarto** (ver `scripts/README.md`).
 
+La aplicación utiliza **Flyway** para administrar las migraciones del esquema de PostgreSQL. No es necesario ejecutar las migraciones manualmente: Spring Boot las gestiona durante el inicio de la aplicación.
+
 ## Configuración de la base de datos
 
 La aplicación obtiene los datos de conexión mediante variables de entorno. Esto evita guardar las credenciales de PostgreSQL directamente en el repositorio.
@@ -88,17 +90,39 @@ spring.datasource.password=${DB_PASSWORD}
 
 Al iniciar la aplicación, Spring Boot establece la conexión con PostgreSQL mediante Spring Data JPA e Hibernate.
 
-El esquema actual de la base de datos es administrado por Hibernate mediante:
+La evolución del esquema de la base de datos se administra mediante Flyway, utilizando migraciones SQL versionadas.
 
-```properties id="0w4r9c"
-spring.jpa.hibernate.ddl-auto=update
-```
+Los archivos de migración se encuentran en:
 
-Por lo tanto, las entidades JPA necesarias se crean o actualizan automáticamente al iniciar la aplicación.
+src/main/resources/db/migration/
+
+Actualmente se cuenta con la migración inicial:
+
+V1__initial_schema.sql
+
+Esta migración define la estructura inicial de la tabla books.
+
+Flyway ejecuta automáticamente las migraciones pendientes durante el inicio de la aplicación y registra las versiones aplicadas en la tabla flyway_schema_history.
+
+La configuración de producción utiliza:
+
+spring.flyway.enabled=true
+
+Hibernate, por su parte, utiliza:
+
+spring.jpa.hibernate.ddl-auto=validate
+
+Esto significa que Hibernate comprueba que el esquema de PostgreSQL sea compatible con las entidades Java, mientras que Flyway se encarga de modificarlo mediante nuevas migraciones.
 
 La base de datos utilizada por el proyecto es persistente: los datos del catálogo no desaparecen al detener o reiniciar la aplicación.
 
-Posteriormente se planea sustituir esta gestión automática del esquema por **Flyway**, utilizando migraciones versionadas.
+**Entorno de pruebas**
+
+Las pruebas automatizadas utilizan una base de datos temporal H2, independiente de PostgreSQL.
+
+En este entorno Hibernate utiliza create-drop para crear y eliminar el esquema de pruebas, mientras que Flyway permanece desactivado.
+
+De esta manera, las pruebas no modifican los datos almacenados en Neon ni dependen de la disponibilidad de la base de datos de desarrollo.
 
 ## Correr las pruebas
 
@@ -121,3 +145,4 @@ Las pruebas no deben depender de credenciales reales de la base de datos ni de d
 | `password authentication failed` | Las credenciales de PostgreSQL son incorrectas | Verifica las credenciales de la instancia de Neon |
 | `Connection refused` o error de conexión a la base de datos | La URL de conexión es incorrecta o la base de datos no está disponible | Revisa `DB_URL` y el estado de la instancia de Neon |
 | La vista muestra "No pudimos cargar el catálogo" | La app no está corriendo o falló al arrancar | Revisa la terminal donde ejecutaste `spring-boot:run` |
+| Error al ejecutar una migración de Flyway | Una migración contiene SQL incorrecto o no es compatible con el esquema existente | Revisa el mensaje de error y el estado de `flyway_schema_history` antes de modificar la base de datos |

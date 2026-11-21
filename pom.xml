@@ -51,6 +51,18 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Flyway: gestión de migraciones de la base de datos -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+
+        <!-- Soporte específico para PostgreSQL -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+
         <!-- OpenAPI + Swagger UI: documentación interactiva de la API en /swagger-ui.html -->
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -64,6 +76,14 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Base de datos en memoria para pruebas automatizadas -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
