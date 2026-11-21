@@ -10,7 +10,7 @@ El proyecto se desarrolla en **6 sprints**. Los primeros se trabajaron en dos eq
 | Sprint 2 | Investigación (SPIKEs), RFC, arquitectura, proyecto base, API en memoria, vista web y wiki | ✅ Completado (en los equipos de origen) |
 | Unificación | Formar LosMergeados y combinar ambos proyectos | ✅ Completado |
 | Sprint 3 | Persistencia con PostgreSQL + Spring Data JPA, integración con Open Library y actualización de la aplicación | ✅ Completado |
-| Sprint 4 | Migraciones de base de datos con Flyway y consolidación de la persistencia | 🔄 En desarrollo |
+| Sprint 4 | Migraciones de base de datos con Flyway y consolidación de la persistencia | ✅ Completado |
 | Sprints 5 y 6 | Funcionalidades de usuario, valoraciones, recomendaciones y mejoras del sistema | ⏳ Pendiente de planificación |
 
 > El orden y alcance de los sprints 5 y 6 son una propuesta basada en las prioridades del PRD y deberán confirmarse con el equipo durante la planeación.
@@ -65,18 +65,24 @@ El objetivo principal del Sprint 3 fue reemplazar la implementación inicial en 
 - [x] Evitar duplicados mediante `sourceId`
 - [x] Actualizar la API y la vista web para trabajar con datos persistidos
 
-## Sprint ???
+## Sprint 4
 
-El siguiente paso de infraestructura es establecer un sistema formal de migraciones de base de datos mediante Flyway.
+El objetivo principal del Sprint 4 fue incorporar un sistema formal de migraciones para administrar la estructura de PostgreSQL y consolidar la persistencia de la aplicación.
 
-- [ ] Incorporar Flyway al proyecto
-- [ ] Crear la migración inicial del esquema actual
-- [ ] Verificar la migración contra la base de datos existente
-- [ ] Evitar que la aplicación dependa de `ddl-auto=update`
-- [ ] Configurar Hibernate para validar el esquema administrado por Flyway
-- [ ] Verificar que los datos existentes no se pierdan durante la transición
+- [x] Incorporar Flyway al proyecto
+- [x] Crear la migración inicial `V1__initial_schema.sql`
+- [x] Configurar Flyway para administrar las migraciones pendientes
+- [x] Incorporar la base de datos existente de Neon mediante un *baseline*, conservando los datos almacenados
+- [x] Registrar el estado inicial de la base de datos en `flyway_schema_history`
+- [x] Reemplazar `ddl-auto=update` por `ddl-auto=validate`
+- [x] Configurar Hibernate para validar el esquema administrado por Flyway
+- [x] Mantener un entorno de pruebas independiente con H2 y Flyway desactivado
+- [x] Verificar que las pruebas automatizadas sigan funcionando correctamente
+- [x] Comprobar el inicio de la aplicación y la conexión con PostgreSQL
 
-El objetivo es que la estructura de la base de datos quede versionada y reproducible, en lugar de depender de la generación automática de Hibernate.
+La estructura de la base de datos queda versionada mediante migraciones SQL. Flyway administra los cambios del esquema y Hibernate valida que las entidades Java sean compatibles con él.
+
+La base de datos existente de Neon se incorporó mediante un *baseline*, por lo que sus datos se conservaron sin ejecutar nuevamente la migración inicial sobre las tablas existentes.
 
 ## Backlog general
 
