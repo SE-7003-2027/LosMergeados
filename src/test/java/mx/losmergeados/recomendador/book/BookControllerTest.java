@@ -43,7 +43,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
  * Usa @WebMvcTest para cargar solo el contexto web
  * junto con el catálogo en memoria.
  */
-@WebMvcTest(BookController.class)
+@WebMvcTest(
+    value = BookController.class,
+    properties = "spring.mvc.problemdetails.enabled=true"
+)
 @Import(BookCatalog.class)
 class BookControllerTest {
 
