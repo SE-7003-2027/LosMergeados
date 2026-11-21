@@ -9,10 +9,11 @@ El proyecto se desarrolla en **6 sprints**. Los primeros se trabajaron en dos eq
 | Sprint 1 | README, guías de colaboración, PRD inicial | ✅ Completado (en los equipos de origen) |
 | Sprint 2 | Investigación (SPIKEs), RFC, arquitectura, proyecto base, API en memoria, vista web y wiki | ✅ Completado (en los equipos de origen) |
 | Unificación | Formar LosMergeados y combinar ambos proyectos | ✅ Completado |
-| Sprint 3 | Base de datos (PostgreSQL + Spring Data JPA) | 📋 Planificado |
-| Sprints 4 a 6 | Por definir a partir de las prioridades del PRD | ⏳ |
+| Sprint 3 | Persistencia con PostgreSQL + Spring Data JPA, integración con Open Library y actualización de la aplicación | ✅ Completado |
+| Sprint 4 | Migraciones de base de datos con Flyway y consolidación de la persistencia | 🔄 En desarrollo |
+| Sprints 5 y 6 | Funcionalidades de usuario, valoraciones, recomendaciones y mejoras del sistema | ⏳ Pendiente de planificación |
 
-> El orden de los sprints 4 a 6 es una propuesta y debe confirmarse con el equipo en la planeación.
+> El orden y alcance de los sprints 5 y 6 son una propuesta basada en las prioridades del PRD y deberán confirmarse con el equipo durante la planeación.
 
 ## Lo que ya se hizo
 
@@ -40,36 +41,62 @@ El proyecto se desarrolla en **6 sprints**. Los primeros se trabajaron en dos eq
 - [x] `GET /api/books/{id}` con 404, filtros `?format=` y `?status=`, `GET /api/health`
 - [x] `format` y `status` como `enum`
 - [x] Swagger UI (`/swagger-ui.html`)
-- [x] Catálogo de ejemplo combinado (11 obras)
-- [x] Documentación de ambos equipos unificada en `docs/wiki/` (ver [Decisión de unificación](Decision-de-unificacion))
+- [x] Catálogo de ejemplo combinado
+- [x] Documentación de ambos equipos unificada en `docs/wiki/`
+- [x] Persistencia mediante PostgreSQL y Spring Data JPA
+- [x] Configuración de PostgreSQL mediante variables de entorno
+- [x] Integración con Open Library
+- [x] Búsqueda de obras externas
+- [x] Importación de obras al catálogo local
+- [x] Prevención de duplicados mediante `sourceId`
+- [x] Búsqueda, filtrado y consulta de obras persistidas
+- [x] Vista web conectada con la API y el catálogo persistente
 
-## Sprint 3 (siguiente)
+## Sprint 3
 
-- [ ] Reemplazar la lista en memoria por un repositorio JPA + PostgreSQL
-- [ ] Convertir `Book` en entidad JPA
-- [ ] Docker Compose para levantar PostgreSQL en local
+El objetivo principal del Sprint 3 fue reemplazar la implementación inicial en memoria por persistencia real y ampliar el catálogo mediante una fuente externa.
+
+- [x] Reemplazar la lista en memoria por un repositorio JPA + PostgreSQL
+- [x] Convertir `Book` en una entidad persistente mediante `BookEntity`
+- [x] Integrar Spring Data JPA e Hibernate
+- [x] Configurar PostgreSQL mediante variables de entorno
+- [x] Integrar Open Library para búsqueda externa
+- [x] Importar obras seleccionadas al catálogo local
+- [x] Evitar duplicados mediante `sourceId`
+- [x] Actualizar la API y la vista web para trabajar con datos persistidos
+
+## Sprint ???
+
+El siguiente paso de infraestructura es establecer un sistema formal de migraciones de base de datos mediante Flyway.
+
+- [ ] Incorporar Flyway al proyecto
+- [ ] Crear la migración inicial del esquema actual
+- [ ] Verificar la migración contra la base de datos existente
+- [ ] Evitar que la aplicación dependa de `ddl-auto=update`
+- [ ] Configurar Hibernate para validar el esquema administrado por Flyway
+- [ ] Verificar que los datos existentes no se pierdan durante la transición
+
+El objetivo es que la estructura de la base de datos quede versionada y reproducible, en lugar de depender de la generación automática de Hibernate.
 
 ## Backlog general
 
-Tomado de las prioridades del [PRD](PRD); se asignará a sprints conforme el equipo los planifique.
+Tomado de las prioridades del [PRD](PRD); se asignará a los siguientes sprints conforme el equipo los planifique.
 
-**Prioridad alta (MVP)**
+### Prioridad alta (MVP)
 
 - [ ] Registro e inicio de sesión (RF01, RF02) — Spring Security
-- [ ] Búsqueda de obras desde el servidor (RF03)
-- [ ] Ficha de detalle de una obra en la vista (RF05)
 - [ ] Valoración de obras y su almacenamiento (RF07)
 - [ ] Recomendaciones iniciales basadas en contenido (RF09)
 
-**Prioridad media**
+### Prioridad media
 
 - [ ] Historial de valoraciones (RF08)
-- [ ] Integración con fuentes externas: Google Books, AniList, Comic Vine (ver [Fuentes de datos y APIs](Fuentes-de-datos-y-APIs))
+- [ ] Integración con fuentes externas adicionales: Google Books, AniList, Comic Vine (ver [Fuentes de datos y APIs](Fuentes-de-datos-y-APIs))
 - [ ] Disponibilidad en México con fuente y fecha (RF06)
 - [ ] Explicación de las recomendaciones
 - [ ] Paginación y ordenamiento
 
-**Infraestructura**
+### Infraestructura
 
 - [ ] CI con GitHub Actions (`./mvnw test` en cada Pull Request)
 - [ ] Despliegue
