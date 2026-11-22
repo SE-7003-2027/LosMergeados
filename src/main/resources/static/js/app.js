@@ -35,7 +35,8 @@
         search: '',
         format: 'ALL',
         status: 'ALL',
-        groupBy: 'genre'
+        groupBy: 'genre',
+        currentUser: null
     };
 
     const els = {
@@ -53,6 +54,21 @@
         externalSearchButton: document.querySelector('#external-search-button'),
         externalSearchStatus: document.querySelector('#external-search-status'),
         externalResults: document.querySelector('#external-results'),
+        authDialog: document.getElementById('auth-dialog'),
+        authHeading: document.getElementById('auth-heading'),
+        authClose: document.getElementById('auth-close'),
+        registerButton: document.getElementById('register-button'),
+        loginButton: document.getElementById('login-button'),
+        registerForm: document.getElementById('register-form'),
+        authStatus: document.getElementById('auth-status'),
+        registerSubmit: document.getElementById('register-submit'),
+        loginForm: document.getElementById('login-form'),
+        loginUsername: document.getElementById('login-username'),
+        loginPassword: document.getElementById('login-password'),
+        loginStatus: document.getElementById('login-status'),
+        loginSubmit: document.getElementById('login-submit'),
+        accountUser: document.getElementById('account-user'),
+        logoutButton: document.getElementById('logout-button'),
     };
 
     /* ---------- Utilidades de DOM (textContent: nunca innerHTML con datos) ---------- */
@@ -518,22 +534,157 @@
         ]));
     }
 
+    async function loadRatings(bookId) {
+        const ratingsContainer = els.detailBody.querySelector('.detail-ratings');
+
+        if (!ratingsContainer) {
+            return;
+        }
+
+        ratingsContainer.replaceChildren(
+            el('p', {
+                className: 'detail-state',
+                text: 'Cargando valoraciones...'
+            })
+        );
+
+        try {
+            const response = await fetch(`/api/ratings/book/${bookId}`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const ratings = await response.json();
+
+            if (ratings.length === 0) {
+                ratingsContainer.replaceChildren(
+                    el('p', {
+                        className: 'detail-state',
+                        text: 'Todavía no hay valoraciones para esta obra.'
+                    })
+                );
+                return;
+            }
+
+            const total = ratings.reduce(
+                (sum, rating) => sum + rating.score,
+                0
+            );
+
+            const average = total / ratings.length;
+
+            const summary = el('div', {
+                className: 'rating-summary'
+            }, [
+                el('strong', {
+                    text: average.toFixed(1)
+                }),
+                el('span', {
+                    text: ` / 10 · ${ratings.length} ${
+                        ratings.length === 1
+                            ? 'valoración'
+                            : 'valoraciones'
+                    }`
+                })
+            ]);
+
+            const list = el('ul', {
+                className: 'rating-list'
+            });
+
+            ratings.forEach((rating) => {
+                list.append(
+                    el('li', {
+                        className: 'rating-item'
+                    }, [
+                        el('span', {
+                            text: `Usuario #${rating.userId}`
+                        }),
+                        el('strong', {
+                            text: `${rating.score}/10`
+                        })
+                    ])
+                );
+            });
+
+            ratingsContainer.replaceChildren(
+                el('h3', {
+                    className: 'detail-section-title',
+                    text: 'Valoraciones'
+                }),
+                summary,
+                list
+            );
+        } catch (error) {
+            console.error('Error al cargar las valoraciones:', error);
+
+            ratingsContainer.replaceChildren(
+                el('p', {
+                    className: 'detail-state',
+                    text: 'No se pudieron cargar las valoraciones.'
+                })
+            );
+        }
+    }
+
     function renderDetail(book) {
-        const row = (label, value) => [el('dt', { text: label }), el('dd', { text: value })];
+        const row = (label, value) => [
+            el('dt', { text: label }),
+            el('dd', { text: value })
+        ];
+
+        const ratingsSection = el('section', {
+            className: 'detail-ratings',
+            'aria-labelledby': 'ratings-heading'
+        }, [
+            el('h3', {
+                id: 'ratings-heading',
+                className: 'detail-section-title',
+                text: 'Valoraciones'
+            }),
+            el('p', {
+                className: 'detail-state',
+                text: 'Cargando valoraciones...'
+            })
+        ]);
 
         els.detail.dataset.format = book.format;
         els.detailBody.setAttribute('aria-busy', 'false');
+
         els.detailBody.replaceChildren(
-            el('h2', { className: 'detail-title', text: book.title }),
-            el('p', { className: 'card-author', text: book.author }),
+            el('h2', {
+                className: 'detail-title',
+                text: book.title
+            }),
+
+            el('p', {
+                className: 'card-author',
+                text: book.author
+            }),
+
             badges(book),
-            el('dl', { className: 'detail-data' }, [
+
+            el('dl', {
+                className: 'detail-data'
+            }, [
                 ...row('Autor', book.author),
                 ...row('Género', book.genre),
-                ...row('Formato', FORMATS[book.format] ?? book.format),
-                ...row('Estatus de publicación', STATUSES[book.status] ?? book.status),
-                ...row('Identificador', String(book.id))
-            ])
+                ...row(
+                    'Formato',
+                    FORMATS[book.format] ?? book.format
+                ),
+                ...row(
+                    'Estatus de publicación',
+                    STATUSES[book.status] ?? book.status
+                ),
+                ...row(
+                    'Identificador',
+                    String(book.id)
+                )
+            ]),
+
+            ratingsSection
         );
     }
 
@@ -551,43 +702,31 @@
     }
 
     async function loadDetail(id) {
-        const requestId = ++latestDetailRequest;
-
-        delete els.detail.dataset.format;
         showDetailSkeleton();
-        if (!els.detail.open) els.detail.showModal();
 
         try {
-            const [response] = await Promise.all([
-                fetch(`${API_URL}/${encodeURIComponent(id)}`, {
-                    headers: { Accept: 'application/json' }
-                }),
-                new Promise(resolve => setTimeout(resolve, MIN_SKELETON_MS))
-            ]);
-
-            if (requestId !== latestDetailRequest) return;
-
-            if (response.status === 404 || response.status === 400) {
-                renderDetailState(
-                    'Obra no encontrada',
-                    'La obra que buscas no existe o el enlace no es válido.'
-                );
-                return;
-            }
+            const response = await fetch(`${API_URL}/${encodeURIComponent(id)}`);
 
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
 
-            renderDetail(await response.json());
-        } catch (error) {
-            if (requestId !== latestDetailRequest) return;
+            const book = await response.json();
 
+            renderDetail(book);
+
+            els.detail.showModal();
+
+            await loadRatings(book.id);
+        } catch (error) {
             console.error('Error al cargar el detalle:', error);
-            renderDetailState(
-                'No pudimos cargar el detalle',
-                'Revisa que la aplicación siga corriendo e inténtalo de nuevo.',
-                id
+
+            els.detailBody.setAttribute('aria-busy', 'false');
+            els.detailBody.replaceChildren(
+                el('p', {
+                    className: 'detail-state',
+                    text: 'No se pudo cargar el detalle de la obra.'
+                })
             );
         }
     }
@@ -622,6 +761,187 @@
 
         window.addEventListener('hashchange', route);
     }
+
+
+    function renderAccount(user) {
+        state.currentUser = user;
+
+        const authenticated = user !== null;
+
+        els.accountUser.hidden = !authenticated;
+        els.accountUser.textContent = authenticated
+            ? `Hola, ${user.username}`
+            : '';
+
+        els.loginButton.hidden = authenticated;
+        els.registerButton.hidden = authenticated;
+        els.logoutButton.hidden = !authenticated;
+    }
+
+    async function loadCurrentUser() {
+        try {
+            const response = await fetch('/api/users/me');
+
+            if (!response.ok) {
+                renderAccount(null);
+                return;
+            }
+
+            const user = await response.json();
+            renderAccount(user);
+
+        } catch (error) {
+            console.error('Error al consultar la sesión:', error);
+            renderAccount(null);
+        }
+    }
+
+
+    function setupAuth() {
+        els.registerButton.addEventListener('click', () => {
+            els.authHeading.textContent = 'Crear cuenta';
+            els.registerForm.hidden = false;
+            els.authStatus.textContent = '';
+            els.registerForm.reset();
+            els.authDialog.showModal();
+        });
+
+        els.loginButton.addEventListener('click', () => {
+            els.authHeading.textContent = 'Iniciar sesión';
+
+            els.registerForm.hidden = true;
+            els.loginForm.hidden = false;
+
+            els.authStatus.textContent = '';
+            els.loginStatus.textContent = '';
+
+            els.loginForm.reset();
+            els.authDialog.showModal();
+        });
+
+        els.authClose.addEventListener('click', () => {
+            els.authDialog.close();
+        });
+
+        els.authDialog.addEventListener('click', event => {
+            if (event.target === els.authDialog) {
+                els.authDialog.close();
+            }
+        });
+
+        els.registerForm.addEventListener('submit', async event => {
+            event.preventDefault();
+
+            const username = document
+                .getElementById('register-username').value.trim();
+
+            const email = document
+                .getElementById('register-email').value.trim();
+
+            const password = document
+                .getElementById('register-password').value;
+
+            els.registerSubmit.disabled = true;
+            els.authStatus.textContent = 'Creando cuenta…';
+
+            try {
+                const response = await fetch('/api/users/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        password
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json().catch(() => null);
+                    throw new Error(
+                        error?.message || 'No se pudo crear la cuenta.'
+                    );
+                }
+
+                const user = await response.json();
+
+                els.authStatus.textContent =
+                    `¡Cuenta creada correctamente, ${user.username}!`;
+
+                els.registerForm.reset();
+
+            } catch (error) {
+                els.authStatus.textContent = error.message;
+            } finally {
+                els.registerSubmit.disabled = false;
+            }
+        });
+
+        els.loginForm.addEventListener('submit', async event => {
+            event.preventDefault();
+
+            const username = els.loginUsername.value.trim();
+            const password = els.loginPassword.value;
+
+            els.loginSubmit.disabled = true;
+            els.loginStatus.textContent = 'Iniciando sesión…';
+
+            try {
+                const response = await fetch('/api/users/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username,
+                        password
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json().catch(() => null);
+
+                    throw new Error(
+                        error?.message || 'Usuario o contraseña incorrectos.'
+                    );
+                }
+
+                const user = await response.json();
+
+                renderAccount(user);
+
+                els.loginStatus.textContent =
+                    `¡Bienvenido, ${user.username}!`;
+
+                els.authDialog.close();
+
+            } catch (error) {
+                els.loginStatus.textContent = error.message;
+            } finally {
+                els.loginSubmit.disabled = false;
+            }
+        });
+
+        els.logoutButton.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/users/logout', {
+                    method: 'POST'
+                });
+
+                if (!response.ok) {
+                    throw new Error('No se pudo cerrar la sesión.');
+                }
+
+                renderAccount(null);
+
+            } catch (error) {
+                console.error('Error al cerrar sesión:', error);
+                alert('No se pudo cerrar la sesión. Inténtalo de nuevo.');
+            }
+        });
+    }
+
 
     /* ---------- Controles ---------- */
 
@@ -725,9 +1045,12 @@
     }
     buildControls();
     setupDetail();
+    setupAuth();
 
     els.externalSearchForm.addEventListener('submit', searchExternal);
 
+    loadCurrentUser();
     load();
     route();
+
 })();

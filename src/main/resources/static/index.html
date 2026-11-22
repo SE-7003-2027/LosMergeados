@@ -10,9 +10,33 @@
 <body>
     <header class="hero">
         <div class="container">
-            <p class="eyebrow">LosMergeados</p>
-            <h1>Recomendador de lecturas</h1>
-            <p class="lead">Libros, cómics y manga disponibles en México. Explora el catálogo y organízalo por autor, género o estatus de publicación.</p>
+            <div class="hero-header">
+                <div>
+                    <p class="eyebrow">LosMergeados</p>
+                    <h1>Recomendador de lecturas</h1>
+                </div>
+
+                <nav class="account-actions" aria-label="Cuenta de usuario">
+                    <span id="account-user" hidden></span>
+
+                    <button type="button" class="btn btn-secondary" id="login-button">
+                        Iniciar sesión
+                    </button>
+
+                    <button type="button" class="btn" id="register-button">
+                        Registrarse
+                    </button>
+
+                    <button type="button" class="btn btn-secondary" id="logout-button" hidden>
+                        Cerrar sesión
+                    </button>
+                </nav>
+            </div>
+
+            <p class="lead">
+                Libros, cómics y manga disponibles en México. Explora el catálogo
+                y organízalo por autor, género o estatus de publicación.
+            </p>
         </div>
     </header>
 
@@ -44,8 +68,9 @@
             </label>
         </section>
 
-        <p class="summary" id="summary" role="status" aria-live="polite">
-        <section class="external-search" aria-labelledby="external-heading">
+            <p class="summary" id="summary" role="status" aria-live="polite"></p>
+
+            <section class="external-search" aria-labelledby="external-heading">
             <div class="external-search-header">
                 <div>
                     <h2 id="external-heading">Descubrir nuevas lecturas</h2>
@@ -77,9 +102,6 @@
                  aria-busy="false"></div>
         </section>
 
-        <p class="summary" id="summary" role="status" aria-live="polite"></p>
- </p>
-
         <div id="content" aria-busy="true"></div>
     </main>
 
@@ -90,6 +112,96 @@
         </div>
         <div id="detail-body" aria-live="polite"></div>
     </dialog>
+
+    <dialog id="auth-dialog" class="detail" aria-labelledby="auth-heading">
+        <div class="detail-header">
+            <span class="field-label" id="auth-heading">Crear cuenta</span>
+            <button
+                type="button"
+                class="detail-close"
+                id="auth-close"
+                aria-label="Cerrar"
+            >×</button>
+        </div>
+
+        <form id="register-form" class="auth-form">
+            <label class="field">
+                <span class="field-label">Nombre de usuario</span>
+                <input
+                    id="register-username"
+                    name="username"
+                    type="text"
+                    autocomplete="username"
+                    minlength="3"
+                    required
+                >
+            </label>
+
+            <label class="field">
+                <span class="field-label">Correo electrónico</span>
+                <input
+                    id="register-email"
+                    name="email"
+                    type="email"
+                    autocomplete="email"
+                    required
+                >
+            </label>
+
+            <label class="field">
+                <span class="field-label">Contraseña</span>
+                <input
+                    id="register-password"
+                    name="password"
+                    type="password"
+                    autocomplete="new-password"
+                    minlength="8"
+                    required
+                >
+            </label>
+
+            <p id="auth-status" class="external-status"
+            role="status" aria-live="polite"></p>
+
+            <button type="submit" class="btn" id="register-submit">
+                Crear cuenta
+            </button>
+        </form>
+
+
+        <form id="login-form" class="auth-form" hidden>
+            <label class="field">
+                <span class="field-label">Nombre de usuario</span>
+                <input
+                    id="login-username"
+                    name="username"
+                    type="text"
+                    autocomplete="username"
+                    required
+                >
+            </label>
+
+            <label class="field">
+                <span class="field-label">Contraseña</span>
+                <input
+                    id="login-password"
+                    name="password"
+                    type="password"
+                    autocomplete="current-password"
+                    required
+                >
+            </label>
+
+            <p id="login-status" class="external-status"
+            role="status" aria-live="polite"></p>
+
+            <button type="submit" class="btn" id="login-submit">
+                Iniciar sesión
+            </button>
+        </form>
+
+    </dialog>
+
 
     <footer class="footer">
         <div class="container">

@@ -1,5 +1,7 @@
 
 package mx.losmergeados.recomendador.book;
+import mx.losmergeados.recomendador.config.SecurityConfig;
+import mx.losmergeados.recomendador.user.CustomUserDetailsService;
 
 import java.util.List;
 
@@ -20,6 +22,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -47,7 +50,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
     value = BookController.class,
     properties = "spring.mvc.problemdetails.enabled=true"
 )
-@Import(BookCatalog.class)
+@Import({
+    BookCatalog.class,
+    SecurityConfig.class
+})
 class BookControllerTest {
 
     @Autowired
@@ -55,6 +61,9 @@ class BookControllerTest {
 
     @MockBean
     private BookRepository bookRepository;
+
+    @MockBean
+    private CustomUserDetailsService customUserDetailsService;
 
     /* ---------- GET /api/books ---------- */
 
@@ -423,6 +432,7 @@ class BookControllerTest {
     /* ---------- POST /api/books/import ---------- */
 
         @Test
+        @WithMockUser
         void importarObraDesdeOpenLibrary_debeRetornarObraGuardada()
                 throws Exception {
 
@@ -472,6 +482,7 @@ class BookControllerTest {
         }
 
         @Test
+        @WithMockUser
         void importarObraSinFormato_debeRetornar400() throws Exception {
 
         String json = """
@@ -495,7 +506,8 @@ class BookControllerTest {
         }
 
         @Test
-                void importarObraSinEstatus_debeRetornar400() throws Exception {
+        @WithMockUser
+        void importarObraSinEstatus_debeRetornar400() throws Exception {
 
                 String json = """
                         {
@@ -518,7 +530,8 @@ class BookControllerTest {
         }
 
         @Test
-                void importarObraConSolicitudVacia_debeRetornar400()
+        @WithMockUser
+        void importarObraConSolicitudVacia_debeRetornar400()
                         throws Exception {
 
                 mockMvc.perform(post("/api/books/import")
