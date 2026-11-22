@@ -6,16 +6,17 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import mx.losmergeados.recomendador.book.recommendation.RecommendationService;
 import mx.losmergeados.recomendador.book.source.OpenLibraryBook;
 import mx.losmergeados.recomendador.book.source.OpenLibraryClient;
 
@@ -32,12 +33,15 @@ public class BookController {
 
     private final BookCatalog catalog;
     private final OpenLibraryClient openLibraryClient;
+    private final RecommendationService recommendationService;
 
     public BookController(
             BookCatalog catalog,
-            OpenLibraryClient openLibraryClient) {
+            OpenLibraryClient openLibraryClient,
+            RecommendationService recommendationService)  {
         this.catalog = catalog;
         this.openLibraryClient = openLibraryClient;
+        this.recommendationService = recommendationService;
     }
 
     /**
@@ -112,6 +116,22 @@ public class BookController {
                 );
     }
 
+    @GetMapping("/{id}/recommendations")
+    @Operation(
+        summary = "Obtiene recomendaciones para una obra",
+        description = "Devuelve hasta cinco obras similares según autor, género, formato y estatus."
+    )
+    public List<Book> recommendations(@PathVariable long id) {
+
+        try {
+            return recommendationService.recommend(id);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Obra no encontrada"
+            );
+        }
+    }
 
     /**
      * Importa una obra seleccionada de Open Library al catálogo local.

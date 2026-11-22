@@ -1,20 +1,18 @@
 
 package mx.losmergeados.recomendador.book;
-import mx.losmergeados.recomendador.config.SecurityConfig;
-import mx.losmergeados.recomendador.user.CustomUserDetailsService;
-
 import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,23 +21,20 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
+import mx.losmergeados.recomendador.book.recommendation.RecommendationService;
 import mx.losmergeados.recomendador.book.source.OpenLibraryBook;
 import mx.losmergeados.recomendador.book.source.OpenLibraryException;
-
-import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
-import static org.mockito.ArgumentMatchers.anyLong;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import mx.losmergeados.recomendador.config.SecurityConfig;
+import mx.losmergeados.recomendador.user.CustomUserDetailsService;
 
 /**
  * Pruebas de la capa web del catálogo de obras.
@@ -62,6 +57,9 @@ class BookControllerTest {
 
     @MockBean
     private BookRepository bookRepository;
+
+    @MockBean
+    private RecommendationService recommendationService;
 
     @MockBean
     private CustomUserDetailsService customUserDetailsService;
@@ -231,6 +229,63 @@ class BookControllerTest {
     void idNoNumerico_devuelve400() throws Exception {
         mockMvc.perform(get("/api/books/abc"))
                 .andExpect(status().isBadRequest());
+    }
+
+    /* ---------- GET /api/books/{id}/recommendations ---------- */
+
+    @Test
+    void recomendaciones_debeRetornarLista() throws Exception {
+
+        List<Book> recommendations = List.of(
+                new Book(
+                        4L,
+                        "Dune",
+                        "Frank Herbert",
+                        "Ciencia ficción",
+                        Format.BOOK,
+                        PublicationStatus.COMPLETED
+                ),
+                new Book(
+                        5L,
+                        "Berserk",
+                        "Kentaro Miura",
+                        "Fantasía oscura",
+                        Format.MANGA,
+                        PublicationStatus.ONGOING
+                )
+        );
+
+        when(recommendationService.recommend(1L))
+                .thenReturn(recommendations);
+
+        mockMvc.perform(get("/api/books/1/recommendations"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(
+                        MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].id").value(4))
+                .andExpect(jsonPath("$[0].title").value("Dune"))
+                .andExpect(jsonPath("$[1].id").value(5))
+                .andExpect(jsonPath("$[1].title").value("Berserk"));
+
+        verify(recommendationService).recommend(1L);
+    }
+
+    @Test
+    void recomendaciones_deObraInexistente_debeRetornar404()
+                throws Exception {
+
+        when(recommendationService.recommend(999L))
+                .thenThrow(new IllegalArgumentException(
+                        "La obra no existe."
+                ));
+
+        mockMvc.perform(get("/api/books/999/recommendations"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.detail")
+                        .value("Obra no encontrada"));
+
+        verify(recommendationService).recommend(999L);
     }
 
     /* ---------- Vista web ---------- */

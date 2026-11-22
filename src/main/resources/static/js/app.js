@@ -552,6 +552,93 @@
         ]));
     }
 
+    async function loadRecommendations(bookId) {
+        const recommendationsContainer =
+            els.detailBody.querySelector('.detail-recommendations');
+
+        if (!recommendationsContainer) {
+            return;
+        }
+
+        recommendationsContainer.replaceChildren(
+            el('p', {
+                className: 'detail-state',
+                text: 'Cargando recomendaciones...'
+            })
+        );
+
+        try {
+            const response = await fetch(
+                `${API_URL}/${encodeURIComponent(bookId)}/recommendations`
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const recommendations = await response.json();
+
+            if (recommendations.length === 0) {
+                recommendationsContainer.replaceChildren(
+                    el('p', {
+                        className: 'detail-state',
+                        text: 'No hay recomendaciones disponibles para esta obra.'
+                    })
+                );
+                return;
+            }
+
+            const list = el('ul', {
+                className: 'recommendation-list'
+            });
+
+            recommendations.forEach(book => {
+                const link = el('a', {
+                    className: 'recommendation-link',
+                    text: book.title,
+                    attrs: {
+                        href: `#obra/${book.id}`
+                    }
+                });
+
+                list.append(
+                    el('li', {
+                        className: 'recommendation-item'
+                    }, [
+                        link,
+                        el('span', {
+                            className: 'recommendation-meta',
+                            text: `${book.author} · ${
+                                FORMATS[book.format] ?? book.format
+                            }`
+                        })
+                    ])
+                );
+            });
+
+            recommendationsContainer.replaceChildren(
+                el('h3', {
+                    className: 'detail-section-title',
+                    text: 'También te puede interesar'
+                }),
+                list
+            );
+
+        } catch (error) {
+            console.error(
+                'Error al cargar las recomendaciones:',
+                error
+            );
+
+            recommendationsContainer.replaceChildren(
+                el('p', {
+                    className: 'detail-state',
+                    text: 'No se pudieron cargar las recomendaciones.'
+                })
+            );
+        }
+    }
+
     async function loadRatings(bookId) {
         const ratingsContainer = els.detailBody.querySelector('.detail-ratings');
 
@@ -667,6 +754,19 @@
             })
         ]);
 
+        const recommendationsSection = el('section', {
+            className: 'detail-recommendations'
+        }, [
+            el('h3', {
+                className: 'detail-section-title',
+                text: 'También te puede interesar'
+            }),
+            el('p', {
+                className: 'detail-state',
+                text: 'Cargando recomendaciones...'
+            })
+        ]);
+
         els.detail.dataset.format = book.format;
         els.detailBody.setAttribute('aria-busy', 'false');
 
@@ -702,7 +802,8 @@
                 )
             ]),
 
-            ratingsSection
+            ratingsSection,
+            recommendationsSection
         );
     }
 
@@ -736,6 +837,7 @@
             els.detail.showModal();
 
             await loadRatings(book.id);
+            await loadRecommendations(book.id);
         } catch (error) {
             console.error('Error al cargar el detalle:', error);
 
