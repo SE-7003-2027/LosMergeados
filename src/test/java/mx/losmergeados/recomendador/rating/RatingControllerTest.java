@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +68,7 @@ class RatingControllerTest {
                         )
                 ))
                 .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf())
                 .content("""
                         {
                             "bookId": 2,
@@ -85,6 +87,7 @@ class RatingControllerTest {
             throws Exception {
 
         mockMvc.perform(post("/api/ratings")
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
@@ -122,6 +125,7 @@ class RatingControllerTest {
                         )
                 ))
                 .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf())
                 .content("""
                         {
                             "bookId": 2,
@@ -158,6 +162,7 @@ class RatingControllerTest {
                         )
                 ))
                 .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf())
                 .content("""
                         {
                             "bookId": 999,
@@ -194,6 +199,7 @@ class RatingControllerTest {
                         )
                 ))
                 .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf())
                 .content("""
                         {
                             "bookId": 2,

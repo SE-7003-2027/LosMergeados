@@ -31,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import mx.losmergeados.recomendador.book.source.OpenLibraryBook;
 import mx.losmergeados.recomendador.book.source.OpenLibraryException;
@@ -468,6 +469,7 @@ class BookControllerTest {
                 """;
 
         mockMvc.perform(post("/api/books/import")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isOk())
@@ -498,6 +500,7 @@ class BookControllerTest {
                 """;
 
         mockMvc.perform(post("/api/books/import")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isBadRequest());
@@ -522,6 +525,7 @@ class BookControllerTest {
                         """;
 
                 mockMvc.perform(post("/api/books/import")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json))
                         .andExpect(status().isBadRequest());
@@ -535,6 +539,7 @@ class BookControllerTest {
                         throws Exception {
 
                 mockMvc.perform(post("/api/books/import")
+                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("{}"))
                         .andExpect(status().isBadRequest());

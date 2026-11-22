@@ -30,6 +30,24 @@
         CANCELLED: 'Cancelado'
     };
 
+    function getCsrfToken() {
+        const cookie = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('XSRF-TOKEN='));
+
+        return cookie
+            ? decodeURIComponent(cookie.substring('XSRF-TOKEN='.length))
+            : null;
+    }
+
+    function csrfHeaders(headers = {}) {
+        const token = getCsrfToken();
+
+        return token
+            ? { ...headers, 'X-XSRF-TOKEN': token }
+            : headers;
+    }
+
     const state = {
         books: [],
         search: '',
@@ -468,10 +486,10 @@
         try {
             const response = await fetch(`${API_URL}/import`, {
                 method: 'POST',
-                headers: {
+                headers: csrfHeaders({
                     'Content-Type': 'application/json',
                     Accept: 'application/json'
-                },
+                }),
                 body: JSON.stringify({
                     book,
                     format: formatSelect.value,
@@ -847,9 +865,9 @@
             try {
                 const response = await fetch('/api/users/register', {
                     method: 'POST',
-                    headers: {
+                    headers: csrfHeaders({
                         'Content-Type': 'application/json'
-                    },
+                    }),
                     body: JSON.stringify({
                         username,
                         email,
@@ -890,9 +908,9 @@
             try {
                 const response = await fetch('/api/users/login', {
                     method: 'POST',
-                    headers: {
+                    headers: csrfHeaders({
                         'Content-Type': 'application/json'
-                    },
+                    }),
                     body: JSON.stringify({
                         username,
                         password
@@ -926,7 +944,8 @@
         els.logoutButton.addEventListener('click', async () => {
             try {
                 const response = await fetch('/api/users/logout', {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: csrfHeaders()
                 });
 
                 if (!response.ok) {
