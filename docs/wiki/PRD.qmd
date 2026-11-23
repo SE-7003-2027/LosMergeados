@@ -2,16 +2,16 @@
 title: "PRD - Product Requirements Document"
 ---
 
-**Versión:** 1.2<br>
-**Estado:** Propuesto<br>
-**Última actualización:** 2026-10-19<br>
-**Responsable:** Equipo LosMergeados (versión original: equipo Git-Wreckers)
+**Versión:** 1.3<br>
+**Estado:** En desarrollo<br>
+**Última actualización:** 2026-11-22<br>
+**Responsable:** Equipo LosMergeados (versión original: equipo Git-Wreckers) J
 
 ## 1. Resumen
 
 El sistema es una aplicación web que centraliza información de libros, cómics y manga para ayudar a las personas a descubrir obras de su interés y conocer si existe información de disponibilidad en México.
 
-Las recomendaciones se generarán a partir de las características de las obras y de las preferencias y valoraciones del usuario.
+Las recomendaciones se generan inicialmente mediante un enfoque basado en contenido, utilizando características de las obras disponibles en el catálogo. En futuras versiones se contempla incorporar las valoraciones, preferencias e historial de los usuarios para generar recomendaciones personalizadas.
 
 El sistema no busca convertirse en una tienda ni sustituir a las plataformas que proporcionan la información original. Su objetivo es facilitar la búsqueda, exploración y descubrimiento de contenido desde un mismo lugar.
 
@@ -29,7 +29,7 @@ Esto dificulta:
 * Consultar información de diferentes fuentes desde un mismo lugar.
 * Identificar información relacionada con la disponibilidad en México.
 
-El sistema ofrecerá un punto de consulta único y recomendaciones personalizadas utilizando la información disponible de diferentes fuentes.
+El sistema ofrecerá un punto de consulta único para facilitar la búsqueda, exploración y descubrimiento de obras. La primera versión incorpora recomendaciones basadas en la similitud entre obras, mientras que la personalización mediante preferencias e historial de usuarios queda contemplada para futuras versiones.
 
 ---
 
@@ -39,16 +39,17 @@ El sistema ofrecerá un punto de consulta único y recomendaciones personalizada
 
 * Permitir consultar y buscar obras de las tres categorías.
 * Ayudar a descubrir obras mediante exploración y recomendaciones.
-* Aprovechar las valoraciones para mejorar la relevancia de las recomendaciones.
+* Permitir a los usuarios registrados valorar obras.
+* Utilizar las características de las obras para generar recomendaciones iniciales basadas en contenido.
 * Mostrar la fuente y la fecha de actualización de la información cuando sea posible.
 * Proporcionar una interfaz sencilla y accesible.
-* Diseñar el sistema de manera que permita incorporar nuevas fuentes de información en el futuro.
+* Diseñar el sistema de manera que permita incorporar nuevas fuentes de información y evolucionar el sistema de recomendaciones en el futuro.
 
 ### Indicadores de éxito
 
 * Al menos 90% de las búsquedas de prueba devuelven resultados o un mensaje claro de "sin resultados".
 * Una búsqueda o consulta responde en un máximo de 3 segundos en condiciones normales, excluyendo caídas de fuentes externas.
-* El 100% de las recomendaciones mostradas incluye la obra y la razón o características que la relacionan con el usuario, cuando esa información esté disponible.
+* El 100% de las recomendaciones mostradas corresponde a obras distintas de la obra de referencia y se genera a partir de las características consideradas por el algoritmo.
 * Las valoraciones realizadas por los usuarios se almacenan correctamente.
 * Las funcionalidades principales del MVP pueden demostrarse mediante sus criterios de aceptación.
 
@@ -58,13 +59,15 @@ El sistema ofrecerá un punto de consulta único y recomendaciones personalizada
 
 ### Usuario visitante
 
-Puede explorar y buscar obras, consultar sus datos y revisar la información de disponibilidad.
+Puede explorar y buscar obras, consultar sus datos y visualizar recomendaciones de obras similares desde la ficha de una obra.
 
-No puede guardar valoraciones ni recibir recomendaciones basadas en su historial.
+No puede registrar valoraciones ni acceder a las funciones que requieren autenticación.
 
 ### Usuario registrado
 
-Puede iniciar sesión, valorar obras y consultar recomendaciones personalizadas basadas en sus preferencias e historial.
+Puede iniciar sesión, valorar obras y utilizar las funciones disponibles para usuarios autenticados.
+
+Las recomendaciones de la versión actual no dependen todavía del historial, preferencias o valoraciones individuales del usuario. La personalización se contempla como una evolución futura del sistema.
 
 ### Administrador o responsable de datos
 
@@ -80,22 +83,30 @@ Este rol queda fuera del flujo principal del MVP y se detallará posteriormente 
 
 * Aplicación web responsive.
 * Registro, inicio y cierre de sesión.
-* Búsqueda por título y, cuando los datos lo permitan, autor, género, categoría y etiquetas.
-* Filtros y ordenamiento para explorar resultados.
-* Ficha de cada obra con título, tipo, autoría, descripción, género/etiquetas, imagen y fuente cuando estén disponibles.
+* Búsqueda por título y consulta de obras del catálogo local.
+* Filtros básicos para explorar resultados.
+* Ficha de cada obra con la información disponible.
+* Integración con Open Library para buscar e importar obras.
+* Prevención de duplicados mediante el identificador de la fuente externa.
 * Valoración de una obra por usuario registrado.
-* Historial de valoraciones del usuario.
-* Recomendaciones personalizadas y explicación básica de su relación.
-* Información de disponibilidad o enlaces de consulta para México cuando la fuente lo proporcione.
+* Recomendaciones iniciales basadas en contenido.
+* Consulta de recomendaciones desde la ficha de una obra.
+* API REST para las funcionalidades principales.
 * Integración con fuentes externas mediante componentes separados de la lógica principal.
+* Documentación de la API mediante OpenAPI/Swagger.
+* Pruebas automatizadas para los principales flujos del sistema.
 
 ### Fuera de alcance para la primera versión
 
+* Historial de valoraciones del usuario como mecanismo de personalización.
+* Recomendaciones personalizadas basadas en preferencias, historial o comportamiento individual.
+* Filtrado colaborativo.
+* Sistema híbrido de recomendaciones.
+* Información de disponibilidad de obras en México mediante fuentes externas.
 * Venta, renta, pagos o distribución física/digital.
 * Reseñas extensas, comentarios sociales o mensajería.
 * Garantizar disponibilidad, precio o inventario en tiempo real.
 * Crear o modificar contenido en las plataformas de origen.
-* Algoritmos avanzados de aprendizaje automático antes de contar con datos suficientes.
 * Funciones administrativas avanzadas.
 * Sistema social entre usuarios.
 
@@ -103,8 +114,7 @@ Este rol queda fuera del flujo principal del MVP y se detallará posteriormente 
 
 ## 6. MVP y prioridades
 
-La primera versión funcional del sistema se enfocará en permitir que una persona consulte obras, registre sus preferencias o valoraciones y reciba recomendaciones básicas.
-
+La primera versión funcional del sistema se enfoca en permitir que una persona consulte y explore obras, registre valoraciones si cuenta con una sesión autenticada y reciba recomendaciones iniciales basadas en las características de una obra de referencia.
 ### Prioridad alta
 
 Las siguientes funcionalidades forman parte del núcleo del MVP:
@@ -154,45 +164,47 @@ El sistema deberá permitir iniciar y cerrar sesión, informar credenciales inv�
 
 ### RF03 - Búsqueda
 
-El sistema deberá buscar obras por texto y mostrar resultados paginados o con carga progresiva.
+El sistema deberá permitir buscar obras por texto y mostrar los resultados disponibles del catálogo local.
 
 Cada resultado deberá indicar título y tipo de obra como mínimo.
 
 ### RF04 - Filtrado y exploración
 
-El sistema deberá permitir explorar obras sin escribir una consulta y aplicar los filtros disponibles, conservando una indicación clara de los filtros activos.
+El sistema deberá permitir explorar obras sin escribir una consulta y aplicar los filtros disponibles, mostrando claramente los criterios utilizados.
 
 ### RF04b - Organización por autor, género y estatus
 
-El sistema deberá permitir organizar los resultados por autor, género y estatus de publicación (en publicación, finalizado, en pausa, cancelado), mostrando el estatus de cada obra.
+El sistema podrá incorporar filtros y mecanismos de organización adicionales para autor, género y estatus de publicación conforme estas características estén disponibles y sean soportadas por el catálogo.
 
 ### RF05 - Detalle de obra
 
-El sistema deberá mostrar una ficha de detalle y diferenciar los datos faltantes de los datos confirmados.
+El sistema deberá mostrar una ficha de detalle con la información disponible de una obra y diferenciar los datos faltantes de los datos registrados.
 
 La ficha deberá identificar la fuente de información cuando esté disponible.
 
 ### RF06 - Disponibilidad en México
 
-Cuando exista información de una fuente configurada, el sistema deberá mostrarla junto con su fuente y fecha de consulta.
-
-Si no existe información, deberá mostrar "información no disponible" y no inferir disponibilidad.
+La información de disponibilidad en México queda como una funcionalidad futura. Cuando se incorpore una fuente que proporcione dicha información, el sistema deberá mostrar su procedencia y fecha de consulta.
 
 ### RF07 - Valoración
 
-Un usuario autenticado deberá poder asignar una valoración dentro de la escala definida por el equipo, modificarla y verla asociada a la obra.
+Un usuario autenticado deberá poder asignar una valoración dentro de la escala definida por el sistema y asociarla a una obra.
 
 Solo deberá existir una valoración vigente por usuario y obra.
 
 ### RF08 - Historial
 
-El sistema deberá permitir al usuario consultar sus obras valoradas y la fecha de su última valoración.
+El sistema podrá incorporar posteriormente un historial de valoraciones que permita al usuario consultar las obras que ha valorado y la fecha de su última valoración.
 
 ### RF09 - Recomendaciones
 
-El sistema deberá generar una lista de recomendaciones considerando, cuando existan, valoraciones, preferencias, categorías, géneros, autores o etiquetas.
+El sistema deberá generar recomendaciones iniciales basadas en las características de una obra de referencia.
 
-Las recomendaciones deberán evitar repetir obras que el usuario ya haya valorado o indicar claramente cuando se incluyan.
+La implementación actual deberá considerar las características disponibles de autor, género, formato y estatus de publicación para calcular una puntuación de similitud.
+
+La obra utilizada como referencia deberá excluirse de los resultados y las recomendaciones se ordenarán por puntuación, devolviendo como máximo cinco obras.
+
+La incorporación de valoraciones, preferencias e historial del usuario para generar recomendaciones personalizadas queda como evolución futura.
 
 ### RF10 - Estados y errores
 
@@ -223,8 +235,8 @@ El sistema deberá permitir consultar y eliminar las valoraciones e información
 * Cada obra tiene un estatus de publicación: en publicación, finalizado, en pausa o cancelado.
 * Los datos de fuentes externas pueden estar incompletos, duplicados o desactualizados y deberán normalizarse antes de mostrarse.
 * La disponibilidad en México significa únicamente que una fuente reporta información relacionada con México; no constituye una garantía de inventario.
-* Las recomendaciones deben poder explicar, al menos de forma básica, qué preferencia o característica las motivó.
-* Para un usuario sin valoraciones suficientes se mostrará una lista general o de obras populares, claramente identificada como no personalizada.
+* Las recomendaciones iniciales deben poder relacionarse, al menos de forma básica, con las características utilizadas por el algoritmo de similitud, como autor, género, formato o estatus de publicación.
+* Las recomendaciones personalizadas basadas en preferencias, historial o valoraciones del usuario se consideran una evolución futura.
 * Una obra podrá recibir como máximo una valoración vigente por usuario.
 * La información obtenida de fuentes externas deberá conservar su procedencia cuando sea necesario para identificar su origen.
 * Las fuentes externas no deberán ser consideradas como disponibles permanentemente; el sistema deberá contemplar errores o interrupciones de estos servicios.
@@ -266,13 +278,16 @@ Como usuario registrado, quiero valorar una obra para expresar mi opinión y mej
 
 ### HU04 - Recibir recomendaciones
 
-Como usuario registrado, quiero recibir recomendaciones basadas en mis intereses para descubrir contenido nuevo.
+Como visitante o usuario registrado, quiero consultar obras similares a una obra seleccionada para descubrir contenido relacionado.
 
 **Criterios:**
 
-* Se muestra una lista de recomendaciones.
-* Cada elemento incluye una razón o característica relacionada cuando esté disponible.
-* Si no hay historial suficiente, se muestra una lista general y una indicación para valorar obras.
+* Desde la ficha de una obra se puede consultar la sección de recomendaciones.
+* Se muestran como máximo cinco obras recomendadas.
+* La obra de referencia no aparece entre sus propias recomendaciones.
+* Las recomendaciones se ordenan de acuerdo con la puntuación calculada por el algoritmo.
+* Si no existen obras con características coincidentes, se muestra una lista vacía o un mensaje apropiado.
+* Las recomendaciones actuales no dependen todavía del historial o preferencias individuales del usuario.
 
 ### HU05 - Explorar contenido
 
@@ -288,7 +303,7 @@ Como visitante, quiero explorar obras por categoría y filtros para descubrir co
 
 ## 11. Arquitectura y decisiones actuales
 
-A partir de las investigaciones realizadas sobre tecnologías, fuentes de datos, algoritmos de recomendación y arquitectura, se establece la siguiente propuesta inicial:
+A partir de las investigaciones realizadas y de las decisiones tomadas durante el desarrollo, la arquitectura actual del proyecto se establece de la siguiente manera:
 
 * El frontend será una aplicación web responsive.
 * La implementación inicial del frontend utilizará HTML, CSS y JavaScript.
@@ -300,7 +315,7 @@ A partir de las investigaciones realizadas sobre tecnologías, fuentes de datos,
 * Las integraciones con fuentes externas deberán mantenerse separadas de la lógica principal del sistema.
 * La arquitectura deberá permitir incorporar nuevas fuentes sin modificar significativamente el sistema de recomendaciones.
 
-La selección definitiva de algunos componentes técnicos podrá modificarse durante la implementación si existe una justificación documentada.
+Las decisiones anteriores corresponden a la implementación actual. Podrán modificarse en futuras versiones cuando exista una justificación técnica documentada.
 
 ---
 
@@ -308,13 +323,12 @@ La selección definitiva de algunos componentes técnicos podrá modificarse dur
 
 Las dependencias principales son:
 
-* Selección definitiva de las fuentes de datos.
+* Disponibilidad y límites de las fuentes externas.
 * Permisos y licencias de uso de las fuentes.
-* Límites de las APIs.
-* Disponibilidad y calidad de los datos.
-* Selección definitiva de algunas tecnologías.
-* Definición del modelo de datos.
-* Disponibilidad de valoraciones para el sistema de recomendaciones.
+* Calidad y completitud de los datos externos.
+* Disponibilidad de PostgreSQL para el almacenamiento persistente.
+* Configuración de variables de entorno para la conexión con la base de datos.
+* Disponibilidad de suficientes interacciones de usuarios para futuras técnicas de recomendación personalizada.
 
 Los principales riesgos son:
 
@@ -323,7 +337,7 @@ Los principales riesgos son:
 * Duplicación de información entre fuentes.
 * Baja cantidad inicial de valoraciones.
 * Problemas de disponibilidad de servicios externos.
-* Complejidad del sistema de recomendaciones.
+* Limitaciones del algoritmo inicial de recomendaciones.
 
 ### Mitigaciones
 
@@ -359,17 +373,16 @@ La relación entre requisitos, Issues y Pull Requests permitirá mantener trazab
 
 Los principales pendientes del proyecto son:
 
-* Confirmar las fuentes de datos definitivas.
-* Confirmar las licencias y límites de las APIs seleccionadas.
-* Definir la escala definitiva de valoración.
-* Definir el modelo de datos.
-* Definir los endpoints principales de la API.
-* Implementar y validar el algoritmo inicial de recomendación.
-* Definir las políticas de privacidad y recuperación de cuenta.
-* Desglosar las historias de usuario en Issues técnicas.
-* Priorizar las tareas del MVP.
-* Definir la estrategia definitiva de despliegue.
-* Establecer las pruebas automatizadas para los componentes principales.
+* Incorporar paginación o mecanismos de carga progresiva al catálogo.
+* Ampliar los filtros y opciones de exploración.
+* Implementar el historial de valoraciones de los usuarios.
+* Incorporar recomendaciones personalizadas basadas en preferencias, historial y valoraciones.
+* Evaluar filtrado colaborativo cuando exista suficiente cantidad de usuarios e interacciones.
+* Evaluar un posible sistema híbrido de recomendaciones.
+* Incorporar información de disponibilidad de obras en México mediante fuentes externas.
+* Ampliar la integración con fuentes externas.
+* Definir y documentar una estrategia de despliegue.
+* Continuar ampliando la cobertura de pruebas automatizadas.
 
 ---
 
@@ -395,10 +408,10 @@ El desarrollo se realizará mediante ramas independientes y Pull Requests hacia 
 
 ## 16. Estado del documento
 
-**Estado:** Propuesto.
+**Estado:** En desarrollo.
 
-La versión 1.1 actualizó el PRD inicial con las conclusiones obtenidas durante la investigación de fuentes de datos, algoritmos de recomendación, tecnologías y arquitectura.
+La versión 1.3 actualiza el PRD para reflejar el estado actual de implementación del proyecto.
 
-La versión 1.2 incorpora la unión de equipos: se agregó el requisito de organización por estatus de publicación (que el equipo 7 ya tenía implementado) y se actualizó la tecnología del backend.
+Se incorporan las funcionalidades de autenticación, valoraciones y recomendaciones iniciales basadas en contenido como parte de la versión funcional actual. También se distinguen las funcionalidades futuras de personalización mediante historial, preferencias y comportamiento de usuarios.
 
-El documento continuará evolucionando conforme se tomen decisiones durante la implementación del MVP.
+El documento continuará evolucionando conforme se incorporen nuevas funcionalidades y se tomen decisiones técnicas durante el desarrollo del proyecto.

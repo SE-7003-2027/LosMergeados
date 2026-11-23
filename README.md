@@ -14,11 +14,11 @@
 
 LosMergeados es un sistema de exploración y recomendación de libros, cómics y manga disponibles en México.
 
-El objetivo es permitir que los usuarios descubran y organicen obras según sus preferencias, autores, géneros, formatos y estatus de publicación. A futuro, el sistema utilizará las preferencias y valoraciones de los usuarios para generar recomendaciones personalizadas.
+El objetivo es permitir que los usuarios descubran y organicen obras según sus preferencias, autores, géneros, formatos y estatus de publicación. Actualmente, el sistema cuenta con un recomendador inicial basado en contenido que permite obtener obras similares a partir de una obra determinada. A futuro, se busca incorporar las preferencias, valoraciones e historial de los usuarios para generar recomendaciones personalizadas.
 
 ## Objetivo
 
-Desarrollar una aplicación capaz de proporcionar recomendaciones personalizadas de libros, cómics y manga, utilizando las preferencias y valoraciones de los usuarios.
+Desarrollar una aplicación capaz de facilitar la exploración y recomendación de libros, cómics y manga, incorporando un sistema de recomendaciones basado en contenido y evolucionando posteriormente hacia recomendaciones personalizadas mediante las preferencias, valoraciones e historial de los usuarios.
 
 ## Origen del proyecto
 
@@ -44,10 +44,15 @@ El proyecto cuenta actualmente con:
 - ✅ Prevención de importaciones duplicadas mediante identificadores de origen.
 - ✅ Interfaz web para explorar y organizar el catálogo.
 - ✅ Vista de detalle de las obras.
+- ✅ Registro, inicio y cierre de sesión de usuarios.
+- ✅ Seguridad mediante Spring Security y protección CSRF.
+- ✅ Valoración de obras por parte de los usuarios.
+- ✅ Recomendaciones iniciales basadas en contenido.
+- ✅ Integración de las recomendaciones en la vista de detalle de las obras.
 - ✅ Documentación interactiva de la API mediante Swagger UI.
 - ✅ Pruebas automatizadas.
 
-Las funcionalidades de usuarios, valoraciones y recomendaciones personalizadas continúan pendientes.
+El sistema de recomendaciones actual compara las obras según autor, género, formato y estatus de publicación. Las recomendaciones personalizadas basadas en el historial y las preferencias de cada usuario quedan como una evolución futura del sistema.
 
 ## Funcionalidades
 
@@ -62,9 +67,14 @@ Se marcan conforme se completan, tomando como referencia el [PRD](docs/wiki/PRD.
 - [x] Importación de obras externas al catálogo.
 - [x] Persistencia de información en PostgreSQL.
 - [x] Prevención de obras duplicadas mediante su identificador de origen.
-- [ ] Registro e inicio de sesión.
-- [ ] Valoración de obras e historial de valoraciones.
-- [ ] Recomendaciones personalizadas basadas en contenido.
+- [x] Registro e inicio de sesión.
+- [x] Gestión de sesiones y cierre de sesión.
+- [x] Protección CSRF para operaciones que modifican información.
+- [x] Valoración de obras por parte de los usuarios.
+- [x] Consulta de valoraciones de una obra.
+- [x] Recomendaciones basadas en contenido a partir de una obra.
+- [x] Visualización de recomendaciones en el detalle de una obra.
+- [ ] Recomendaciones personalizadas basadas en preferencias e historial del usuario.
 - [ ] Información de disponibilidad en México a partir de fuentes externas.
 
 ## Stack tecnológico
@@ -80,9 +90,8 @@ Se marcan conforme se completan, tomando como referencia el [PRD](docs/wiki/PRD.
 | Documentación de API | OpenAPI / Swagger UI | Implementado |
 | Gestor de dependencias | Maven Wrapper | Implementado |
 | Pruebas | JUnit 5 + Mockito + MockMvc | Implementado |
-| Documentación | Quarto + GitHub Wiki | Implementado |
-| Seguridad | Spring Security | Pendiente |
-| Recomendaciones | Filtrado basado en contenido | Pendiente |
+| Seguridad | Spring Security | Implementado |
+| Recomendaciones | Filtrado basado en contenido | Implementado |
 | Contenedores | Docker + Docker Compose | Pendiente |
 | CI | GitHub Actions | Pendiente |
 
@@ -120,15 +129,11 @@ Sustituye los valores de ejemplo por los datos de conexión de tu propia instanc
 
 ### 3. Ejecutar la aplicación
 
-```bash
 ./mvnw spring-boot:run
-```
 
 En Windows:
 
-```powershell
 .\mvnw.cmd spring-boot:run
-```
 
 Una vez iniciada, la aplicación estará disponible en:
 
@@ -141,12 +146,36 @@ Una vez iniciada, la aplicación estará disponible en:
 
 ## Endpoints disponibles
 
+### Catálogo de obras
+
 | Método | Ruta | Descripción |
 |---|---|---|
 | GET | `/api/books` | Lista y busca obras del catálogo local. |
 | GET | `/api/books/external?title=` | Busca obras externas en Open Library por título. |
 | GET | `/api/books/{id}` | Consulta el detalle de una obra local. |
 | POST | `/api/books/import` | Importa una obra de Open Library al catálogo local. |
+| GET | `/api/books/{id}/recommendations` | Obtiene hasta cinco obras similares a una obra determinada. |
+
+### Usuarios y autenticación
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/api/users/register` | Registra un nuevo usuario. |
+| POST | `/api/users/login` | Inicia sesión y establece la sesión del usuario. |
+| GET | `/api/users/me` | Consulta los datos del usuario actualmente autenticado. |
+| POST | `/api/users/logout` | Cierra la sesión del usuario actual. |
+
+### Valoraciones
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/api/ratings` | Registra una valoración de una obra para el usuario autenticado. |
+| GET | `/api/ratings/book/{bookId}` | Consulta las valoraciones asociadas a una obra. |
+
+### Estado del servicio
+
+| Método | Ruta | Descripción |
+|---|---|---|
 | GET | `/api/health` | Consulta el estado del servicio. |
 
 ### Parámetros de búsqueda del catálogo
@@ -197,7 +226,7 @@ Para ejecutar todas las pruebas automatizadas:
 ./mvnw clean test
 ```
 
-Las pruebas verifican el comportamiento de los controladores, la lógica del catálogo y las operaciones relacionadas con la importación de obras.
+Las pruebas verifican el comportamiento de los controladores, la autenticación y seguridad de usuarios, las valoraciones, las recomendaciones, la lógica del catálogo y las operaciones relacionadas con la integración e importación de obras externas.
 
 ## Estructura del repositorio
 
@@ -214,8 +243,11 @@ Las pruebas verifican el comportamiento de los controladores, la lógica del cat
 │   │   ├── java/mx/losmergeados/recomendador/
 │   │   │   ├── RecomendadorApplication.java
 │   │   │   ├── book/
+│   │   │   │   ├── recommendation/
 │   │   │   │   ├── source/
 │   │   │   │   └── ...
+│   │   │   ├── user/
+│   │   │   ├── rating/
 │   │   │   └── health/
 │   │   └── resources/
 │   │       ├── application.properties
@@ -230,7 +262,6 @@ Las pruebas verifican el comportamiento de los controladores, la lógica del cat
 └── scripts/
     ├── README.md
     └── build-wiki.sh
-```
 
 ## Organización del proyecto
 

@@ -10,13 +10,13 @@ El proyecto busca recomendar libros, cómics y manga disponibles en México toma
 
 La intención de esta investigación es conocer las principales alternativas, qué datos necesita cada una, sus ventajas y limitaciones, y qué tan adecuadas podrían ser para nuestro proyecto.
 
-Esta investigación presenta una propuesta inicial, pero la decisión técnica definitiva dependerá de las pruebas y de la disponibilidad de datos del proyecto.
+Esta investigación sirvió como base para seleccionar el enfoque inicial de recomendaciones. A partir de la información disponible en el proyecto y de la necesidad de contar con una solución sencilla de implementar, se decidió utilizar inicialmente un algoritmo de recomendación basado en contenido. La arquitectura queda preparada para evolucionar posteriormente hacia un enfoque colaborativo o híbrido conforme aumenten las interacciones y los datos disponibles.
 
 # 2. Contexto del proyecto
 
 El proyecto será un sistema web en el que los usuarios podrán explorar libros, cómics y manga, consultar información sobre ellos y calificarlos.
 
-Con estas interacciones se busca generar recomendaciones personalizadas.
+Con estas interacciones se busca generar posteriormente recomendaciones personalizadas. En la primera versión implementada, las recomendaciones se generan a partir de la similitud entre obras y no dependen todavía del historial individual de cada usuario.
 
 Para lograrlo, el sistema necesitará relacionar la información de los contenidos con las preferencias de los usuarios.
 
@@ -65,44 +65,26 @@ En nuestro proyecto podrían utilizarse características como:
 
 Una forma sencilla de implementar este enfoque sería representar cada contenido mediante un conjunto de características y calcular qué tan similares son entre sí.
 
-Por ejemplo:
+### Implementación realizada
 
-```text
-Contenido A
-- Manga
-- Fantasía
-- Acción
-- Aventura
+Para la primera versión del proyecto se implementó un recomendador basado en contenido que compara una obra de referencia con las demás obras disponibles en el catálogo local.
 
-Contenido B
-- Manga
-- Fantasía
-- Acción
-- Aventura
+La puntuación actual utiliza las siguientes características:
 
-Contenido C
-- Cómic
-- Superhéroes
-- Acción
-```
+| Característica | Puntuación |
+|---|---:|
+| Mismo autor | +50 |
+| Mismo género | +30 |
+| Mismo formato | +15 |
+| Mismo estatus de publicación | +5 |
 
-En este caso, A y B tendrían características más similares que A y C.
+El género `"Sin clasificar"` no se considera una coincidencia válida, ya que representa la ausencia de información de género.
 
-## Ventajas
+La obra utilizada como referencia se excluye de los resultados. Las obras con puntuación cero también se descartan. Finalmente, los resultados se ordenan de mayor a menor puntuación y se devuelven como máximo cinco recomendaciones.
 
-* No necesita una gran cantidad de usuarios para comenzar a funcionar.
-* Puede generar recomendaciones basándose directamente en las características del contenido.
-* Es relativamente sencillo de explicar.
-* Puede funcionar desde las primeras interacciones de un usuario.
-* Puede utilizar información disponible desde las fuentes externas de datos.
+En caso de empate, se utiliza el título de la obra como criterio secundario de ordenamiento.
 
-## Limitaciones
-
-* Las recomendaciones pueden terminar siendo demasiado similares entre sí.
-* Necesita información suficientemente descriptiva de los contenidos.
-* Si los datos disponibles tienen pocas características, las recomendaciones pueden ser poco útiles.
-* Puede ser más difícil recomendar contenido diferente al historial conocido del usuario.
-* La calidad de las recomendaciones dependerá de la representación de las características.
+Esta implementación constituye la primera versión funcional del sistema de recomendaciones y está diseñada para poder evolucionar posteriormente conforme aumenten los datos disponibles.
 
 # 3.2 Filtrado colaborativo
 
@@ -189,7 +171,7 @@ También podría ayudar con el problema de usuarios nuevos, ya que inicialmente 
 | Dependencia de interacciones        | Baja                | Alta              | Media/Alta |
 | Posibilidad de combinar información | Sí                  | Sí                | Sí         |
 
-Esta comparación es cualitativa y deberá complementarse con una prueba técnica antes de tomar una decisión definitiva.
+Esta comparación sirvió como base para la decisión inicial del proyecto. Debido a la cantidad limitada de usuarios e interacciones disponibles, se seleccionó el filtrado basado en contenido para la primera versión. El filtrado colaborativo y el enfoque híbrido quedan como alternativas para futuras etapas.
 
 # 5. Datos necesarios
 
@@ -278,11 +260,33 @@ También sería posible utilizar las calificaciones que los usuarios generen con
 
 La decisión deberá considerar también las características que realmente puedan obtenerse de las fuentes seleccionadas y la forma en que dichas características puedan normalizarse.
 
-# 8. Propuesta inicial
+# 8. Propuesta y decisión inicial
 
-A partir de la investigación realizada, se propone evaluar inicialmente un enfoque basado en contenido y mantener preparada la arquitectura para incorporar posteriormente información colaborativa.
+A partir de la investigación realizada y de las características actuales del proyecto, se decidió utilizar inicialmente un enfoque basado en contenido.
 
-Una posible evolución sería:
+La decisión se debe principalmente a que el proyecto todavía cuenta con una cantidad limitada de usuarios e interacciones, mientras que las obras del catálogo ya contienen información que puede utilizarse para calcular similitud.
+
+La primera implementación utiliza autor, género, formato y estatus de publicación como características de comparación. La puntuación asignada a cada coincidencia permite ordenar las obras candidatas y seleccionar las más similares.
+
+El flujo actual es:
+
+```text
+Obra seleccionada
+       ↓
+Obtener características
+       ↓
+Comparar con otras obras
+       ↓
+Calcular puntuación de similitud
+       ↓
+Ordenar resultados
+       ↓
+Seleccionar hasta 5 obras
+```
+
+La implementación actual no utiliza todavía las valoraciones ni el historial del usuario para calcular las recomendaciones. Por lo tanto, las recomendaciones actuales deben considerarse recomendaciones de obras similares y no recomendaciones personalizadas por usuario.
+
+La evolución propuesta del sistema es:
 
 ```text
 Primera etapa
@@ -290,12 +294,16 @@ Primera etapa
 Características del contenido
     ↓
 Recomendaciones basadas en similitud
+    ↓
+Implementado
 
 Segunda etapa
     ↓
-Se acumulan calificaciones de usuarios
+Más usuarios y calificaciones
     ↓
-Se incorporan patrones de comportamiento
+Incorporación de comportamiento de usuarios
+    ↓
+Evaluación de filtrado colaborativo
 
 Tercera etapa
     ↓
@@ -304,13 +312,11 @@ Contenido + comportamiento de usuarios
 Evaluación de un sistema híbrido
 ```
 
-Esta propuesta permite comenzar con una implementación más sencilla y evolucionar el sistema conforme aumente la cantidad de datos disponibles.
-
-La propuesta no constituye todavía una decisión técnica definitiva.
+De esta manera, el proyecto cuenta con una solución funcional sencilla para la primera versión, pero conserva la posibilidad de incorporar técnicas más avanzadas conforme aumenten los datos disponibles.
 
 # 9. Prueba técnica propuesta
 
-Antes de implementar el algoritmo definitivo, se propone realizar una prueba técnica utilizando una muestra de contenidos obtenidos de las fuentes de datos seleccionadas.
+Como parte de la evaluación del enfoque seleccionado, se realizó una primera implementación utilizando los contenidos disponibles en el catálogo local. Esta implementación permite evaluar el comportamiento del algoritmo y detectar aspectos que deberán mejorarse en futuras versiones.
 
 La prueba deberá considerar, como mínimo:
 
@@ -324,7 +330,7 @@ La prueba deberá considerar, como mínimo:
 * Posibilidad de aplicar filtros relacionados con disponibilidad en México.
 * Complejidad de implementación y mantenimiento.
 
-Como resultado de la prueba se deberá determinar si el enfoque basado en contenido es suficiente para la primera versión o si es necesario modificar la propuesta.
+La primera implementación permitió comprobar que el enfoque basado en contenido es viable para la versión actual del proyecto. La evaluación futura deberá determinar qué características adicionales pueden mejorar la calidad de las recomendaciones y en qué momento resulta conveniente incorporar información colaborativa.
 
 # 10. Posible funcionamiento
 
@@ -368,30 +374,34 @@ El cálculo exacto de similitud y la forma de combinar las diferentes caracterí
 
 # 11. Decisiones pendientes
 
-Todavía quedan algunos aspectos por definir antes de implementar el sistema:
+Aunque el enfoque inicial ya fue seleccionado e implementado, todavía quedan aspectos por definir y evaluar para futuras versiones:
 
-* Qué algoritmo o combinación de algoritmos se utilizará finalmente.
-* Qué características de los contenidos tendrán mayor importancia.
-* Cómo se representarán los contenidos.
-* Cómo se calculará la similitud.
-* Cómo se utilizarán las calificaciones de los usuarios.
-* Cómo se manejarán usuarios nuevos.
-* Cómo se manejarán contenidos nuevos.
-* Qué cantidad de datos será necesaria para incorporar filtrado colaborativo.
-* Qué tecnologías o librerías se utilizarán para implementar el algoritmo.
-* Cómo se evaluará la calidad de las recomendaciones.
-* Cómo se aplicarán los filtros relacionados con disponibilidad en México.
+* Qué características adicionales de los contenidos podrían mejorar las recomendaciones.
+* Qué pesos deben asignarse a cada característica para mejorar la calidad de la puntuación.
+* Cómo representar de forma más completa géneros, categorías y etiquetas provenientes de fuentes externas.
+* Cómo incorporar las valoraciones de los usuarios al sistema de recomendaciones.
+* Cómo utilizar el historial y las preferencias de cada usuario.
+* Cómo evaluar formalmente la calidad de las recomendaciones.
+* Qué cantidad de usuarios e interacciones sería suficiente para evaluar un enfoque colaborativo.
+* Cómo manejar el problema de cold start para usuarios y contenidos nuevos.
+* Si resulta conveniente combinar el enfoque basado en contenido con filtrado colaborativo mediante un sistema híbrido.
+* Cómo incorporar información relacionada con disponibilidad en México sin afectar la calidad de las recomendaciones.
+* Qué tecnologías o librerías adicionales serían necesarias para una futura evolución del recomendador.
 
-Estas decisiones deberán documentarse posteriormente en el RFC cuando se tengan los resultados de las investigaciones y pruebas correspondientes.
+Estas decisiones podrán documentarse posteriormente en un RFC cuando se realicen nuevas pruebas y se obtengan suficientes datos para evaluar las alternativas.
 
 # 12. Conclusión
 
-Existen diferentes alternativas para implementar el sistema de recomendaciones del proyecto.
+Se analizaron tres alternativas principales para implementar el sistema de recomendaciones: filtrado basado en contenido, filtrado colaborativo y un sistema híbrido.
 
-El filtrado basado en contenido permite comenzar utilizando las características de los libros, cómics y manga, mientras que el filtrado colaborativo puede aprovechar las interacciones entre usuarios cuando exista suficiente información.
+Debido a que el proyecto todavía cuenta con una cantidad limitada de usuarios e interacciones, se seleccionó el filtrado basado en contenido como enfoque inicial. Esta alternativa permite aprovechar la información disponible de las obras sin depender de una gran cantidad de calificaciones de usuarios.
 
-Un sistema híbrido podría combinar ambos enfoques y permitir que el sistema evolucione conforme aumenten los datos disponibles.
+La primera implementación compara las obras utilizando autor, género, formato y estatus de publicación, asignando una puntuación a cada coincidencia y devolviendo hasta cinco obras similares.
 
-Por el momento, la propuesta inicial es evaluar una solución basada en contenido y mantener la posibilidad de incorporar posteriormente un componente colaborativo.
+Esta solución ya se encuentra integrada en la aplicación mediante el endpoint de recomendaciones y se muestra en la vista de detalle de las obras.
 
-Esta propuesta no se considera una decisión técnica definitiva. La elección final deberá realizarse después de evaluar las fuentes de datos, las tecnologías disponibles y los resultados de la prueba técnica propuesta.
+El enfoque actual no utiliza todavía las preferencias, valoraciones ni el historial individual de los usuarios, por lo que las recomendaciones actuales son similares a una obra de referencia y no recomendaciones personalizadas por usuario.
+
+Como evolución futura, se contempla incorporar las interacciones de los usuarios y evaluar el filtrado colaborativo. Si la cantidad y calidad de los datos lo justifican, también podrá evaluarse un sistema híbrido que combine las características del contenido con el comportamiento de los usuarios.
+
+De esta forma, la investigación inicial se traduce en una primera solución funcional, manteniendo una ruta clara para evolucionar el sistema de recomendaciones conforme crezca el proyecto.

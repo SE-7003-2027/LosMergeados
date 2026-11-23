@@ -12,8 +12,15 @@ La documentación interactiva, generada automáticamente con OpenAPI, está disp
 |---|---|---|
 | GET | `/api/books` | Lista y busca obras del catálogo local, con filtros opcionales `format`, `status` y `q` |
 | GET | `/api/books/{id}` | Devuelve el detalle de una obra del catálogo local |
+| GET | `/api/books/{id}/recommendations` | Devuelve hasta cinco obras similares a una obra determinada |
 | GET | `/api/books/external?title={title}` | Busca obras en Open Library por título |
 | POST | `/api/books/import` | Importa una obra seleccionada de Open Library al catálogo local |
+| POST | `/api/users/register` | Registra un nuevo usuario |
+| POST | `/api/users/login` | Inicia sesión |
+| GET | `/api/users/me` | Devuelve los datos del usuario autenticado |
+| POST | `/api/users/logout` | Cierra la sesión actual |
+| POST | `/api/ratings` | Registra una valoración para una obra |
+| GET | `/api/ratings/book/{bookId}` | Devuelve las valoraciones de una obra |
 | GET | `/api/health` | Estado del servicio |
 | GET | `/v3/api-docs` | Especificación OpenAPI en JSON |
 
@@ -127,6 +134,54 @@ Devuelve una obra específica del catálogo local.
 
 La vista web utiliza este endpoint para abrir el detalle de una obra.
 
+## GET /api/books/{id}/recommendations
+
+Devuelve hasta cinco obras similares a una obra determinada del catálogo local.
+
+El sistema utiliza un algoritmo inicial de recomendación basado en contenido. La similitud se calcula utilizando las características disponibles de cada obra:
+
+- Autor: +50 puntos.
+- Género: +30 puntos.
+- Formato: +15 puntos.
+- Estatus de publicación: +5 puntos.
+
+El género `"Sin clasificar"` no se considera una coincidencia válida para la puntuación.
+
+La obra utilizada como referencia no aparece dentro de sus propias recomendaciones. Las obras con puntuación cero se descartan y los resultados restantes se ordenan de mayor a menor puntuación. En caso de empate, se utiliza el título de la obra como criterio secundario.
+
+### Respuesta exitosa
+
+**200 OK**, `application/json`
+
+Ejemplo:
+
+```json
+[
+  {
+    "id": 5,
+    "title": "Dune Messiah",
+    "author": "Frank Herbert",
+    "genre": "Science Fiction",
+    "format": "BOOK",
+    "status": "COMPLETED"
+  }
+]
+```
+
+La respuesta contiene como máximo cinco obras.
+
+Si la obra existe pero no hay otras obras con características coincidentes, la respuesta es `200 OK` con una lista vacía (`[]`).
+
+Si la obra solicitada no existe, la API responde `404 Not Found` utilizando Problem Details.
+
+### Implementación actual
+
+El controlador `BookController` delega la generación de recomendaciones a `RecommendationService`.
+
+`RecommendationService` obtiene la obra de referencia mediante `BookRepository`, calcula una puntuación para cada obra candidata y devuelve los resultados ordenados.
+
+Actualmente las recomendaciones son **similares a una obra**, no recomendaciones personalizadas por usuario. Como evolución futura se contempla utilizar las valoraciones, preferencias e historial de cada usuario para generar recomendaciones personalizadas.
+
 ## GET /api/books/external
 
 Busca obras en el catálogo externo de **Open Library** por título. Este endpoint permite consultar información externa sin modificar el catálogo interno.
@@ -138,6 +193,100 @@ Busca obras en el catálogo externo de **Open Library** por título. Este endpoi
 | `title` | Título de la obra que se desea buscar | `/api/books/external?title=The%20Hobbit` |
 
 El parámetro `title` es obligatorio. Si se proporciona un título vacío o compuesto únicamente por espacios, el servicio devuelve una lista vacía.
+
+## Usuarios y autenticación
+
+La API permite registrar usuarios, iniciar y cerrar sesiones y consultar la información del usuario autenticado.
+
+### POST /api/users/register
+
+Registra un nuevo usuario.
+
+El cuerpo de la solicitud utiliza `UserRegistrationRequest` y contiene los datos necesarios para crear la cuenta.
+
+Si el registro es exitoso, responde:
+
+**201 Created**, `application/json`
+
+Si los datos no son válidos o no se puede completar el registro, responde `400 Bad Request`.
+
+### POST /api/users/login
+
+Inicia sesión con las credenciales proporcionadas.
+
+Si las credenciales son correctas:
+
+**200 OK**, `application/json`
+
+La aplicación establece la sesión del usuario mediante Spring Security.
+
+Si el usuario o contraseña son incorrectos:
+
+**401 Unauthorized**
+
+### GET /api/users/me
+
+Devuelve la información del usuario actualmente autenticado.
+
+Si existe una sesión válida:
+
+**200 OK**, `application/json`
+
+Si no existe una sesión autenticada:
+
+**401 Unauthorized**
+
+### POST /api/users/logout
+
+Cierra la sesión del usuario actual.
+
+Cuando la operación se realiza correctamente:
+
+**204 No Content**
+
+La aplicación utiliza Spring Security para limpiar el contexto de seguridad asociado a la sesión.
+
+### Seguridad y CSRF
+
+Las operaciones que modifican información están protegidas mediante Spring Security y protección CSRF.
+
+La aplicación utiliza una cookie `XSRF-TOKEN` para que el frontend pueda obtener el token CSRF y enviarlo en las solicitudes que lo requieren.
+
+## Valoraciones
+
+Las valoraciones permiten que los usuarios autenticados asignen una puntuación a las obras del catálogo.
+
+### POST /api/ratings
+
+Registra una valoración para una obra.
+
+La solicitud debe realizarse con un usuario autenticado.
+
+El cuerpo contiene el identificador de la obra y la puntuación correspondiente.
+
+Si la valoración se crea correctamente:
+
+**201 Created**, `application/json`
+
+Si no existe una sesión autenticada:
+
+**401 Unauthorized**
+
+Si faltan datos obligatorios o la valoración no es válida:
+
+**400 Bad Request**
+
+### GET /api/ratings/book/{bookId}
+
+Devuelve las valoraciones asociadas a una obra.
+
+**200 OK**, `application/json`
+
+Si no existen valoraciones para la obra, devuelve una lista vacía (`[]`).
+
+Si la obra consultada no existe:
+
+**404 Not Found**
 
 ### Respuesta exitosa
 
@@ -303,9 +452,7 @@ En Windows PowerShell también se puede utilizar `curl.exe`.
 ## Pendiente
 
 - Paginación del catálogo y de las búsquedas.
-- Registro e inicio de sesión.
-- Valoraciones de usuarios.
-- Historial y preferencias.
-- Endpoint de recomendaciones.
-- Ampliación del modelo de datos para las nuevas funcionalidades.
-- Migración de la gestión del esquema de Hibernate (`ddl-auto=update`) a Flyway.
+- Historial y preferencias de los usuarios.
+- Recomendaciones personalizadas basadas en el historial y las valoraciones de cada usuario.
+- Información de disponibilidad de obras en México mediante fuentes externas.
+- Ampliación de la integración con fuentes externas.

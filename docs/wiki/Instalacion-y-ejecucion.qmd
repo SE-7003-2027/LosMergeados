@@ -14,8 +14,6 @@ No es necesario instalar PostgreSQL ni Docker localmente para ejecutar la config
 
 Para publicar la wiki también se necesita **Quarto** (ver `scripts/README.md`).
 
-La aplicación utiliza **Flyway** para administrar las migraciones del esquema de PostgreSQL. No es necesario ejecutar las migraciones manualmente: Spring Boot las gestiona durante el inicio de la aplicación.
-
 ## Configuración de la base de datos
 
 La aplicación obtiene los datos de conexión mediante variables de entorno. Esto evita guardar las credenciales de PostgreSQL directamente en el repositorio.
@@ -67,15 +65,11 @@ spring.datasource.password=${DB_PASSWORD}
 
 3. Levanta la aplicación:
 
-   ```bash
    ./mvnw spring-boot:run
-   ```
 
    En Windows con PowerShell o CMD:
 
-   ```text
    .\mvnw.cmd spring-boot:run
-   ```
 
 4. Abre en el navegador:
 
@@ -90,31 +84,19 @@ spring.datasource.password=${DB_PASSWORD}
 
 Al iniciar la aplicación, Spring Boot establece la conexión con PostgreSQL mediante Spring Data JPA e Hibernate.
 
-La evolución del esquema de la base de datos se administra mediante Flyway, utilizando migraciones SQL versionadas.
+La aplicación utiliza PostgreSQL como base de datos persistente para almacenar el catálogo, los usuarios y las valoraciones.
 
-Los archivos de migración se encuentran en:
+La conexión se configura mediante las variables de entorno `DB_URL`, `DB_USERNAME` y `DB_PASSWORD`, evitando almacenar credenciales directamente en el repositorio.
 
-src/main/resources/db/migration/
+La configuración de Hibernate se encuentra en `src/main/resources/application.properties`.
 
-Actualmente se cuenta con la migración inicial:
+La base de datos utilizada por el proyecto es persistente: los datos almacenados no desaparecen al detener o reiniciar la aplicación.
 
-V1__initial_schema.sql
+**Entorno de pruebas**
 
-Esta migración define la estructura inicial de la tabla books.
+Las pruebas automatizadas utilizan una base de datos temporal independiente de la instancia PostgreSQL utilizada para el desarrollo.
 
-Flyway ejecuta automáticamente las migraciones pendientes durante el inicio de la aplicación y registra las versiones aplicadas en la tabla flyway_schema_history.
-
-La configuración de producción utiliza:
-
-spring.flyway.enabled=true
-
-Hibernate, por su parte, utiliza:
-
-spring.jpa.hibernate.ddl-auto=validate
-
-Esto significa que Hibernate comprueba que el esquema de PostgreSQL sea compatible con las entidades Java, mientras que Flyway se encarga de modificarlo mediante nuevas migraciones.
-
-La base de datos utilizada por el proyecto es persistente: los datos del catálogo no desaparecen al detener o reiniciar la aplicación.
+De esta manera, las pruebas no deben modificar los datos almacenados en Neon ni depender de la disponibilidad de la base de datos de desarrollo.
 
 **Entorno de pruebas**
 
@@ -129,10 +111,11 @@ De esta manera, las pruebas no modifican los datos almacenados en Neon ni depend
 ```bash
 ./mvnw test
 ```
+Las pruebas automatizadas cubren los principales flujos del catálogo, autenticación y seguridad de usuarios, valoraciones, recomendaciones e integración e importación de obras externas.
 
-Corre las pruebas antes de abrir un Pull Request (ver [Guía de colaboración](Guia-de-colaboracion)).
+Corre las pruebas antes de abrir un Pull Request (ver Guía de colaboración).
 
-Las pruebas no deben depender de credenciales reales de la base de datos ni de datos que solamente existan en la instancia de producción.
+Las pruebas no deben depender de credenciales reales de la base de datos ni de datos que solamente existan en la instancia de desarrollo.
 
 ## Problemas frecuentes
 
@@ -140,9 +123,9 @@ Las pruebas no deben depender de credenciales reales de la base de datos ni de d
 |---|---|---|
 | `Port 8080 was already in use` | Otro proceso usa el puerto | Cierra ese proceso o cambia `server.port` en `src/main/resources/application.properties` |
 | `invalid target release: 21` | El JDK activo es anterior a 21 | Instala JDK 21 y revisa `java -version` |
-| `./mvnw: Permission denied` | El script perdió el permiso de ejecución | `chmod +x mvnw` (o `git update-index --chmod=+x mvnw` para guardarlo en Git) |
+| `./mvnw: Permission denied` | El script perdió el permiso de ejecución | Ejecuta `chmod +x mvnw` (o `git update-index --chmod=+x mvnw` para guardarlo en Git) |
 | Error de conexión con PostgreSQL | Falta alguna variable de entorno o sus valores son incorrectos | Revisa `DB_URL`, `DB_USERNAME` y `DB_PASSWORD` |
 | `password authentication failed` | Las credenciales de PostgreSQL son incorrectas | Verifica las credenciales de la instancia de Neon |
 | `Connection refused` o error de conexión a la base de datos | La URL de conexión es incorrecta o la base de datos no está disponible | Revisa `DB_URL` y el estado de la instancia de Neon |
 | La vista muestra "No pudimos cargar el catálogo" | La app no está corriendo o falló al arrancar | Revisa la terminal donde ejecutaste `spring-boot:run` |
-| Error al ejecutar una migración de Flyway | Una migración contiene SQL incorrecto o no es compatible con el esquema existente | Revisa el mensaje de error y el estado de `flyway_schema_history` antes de modificar la base de datos |
+| Error al ejecutar `./mvnw test` | Alguna prueba o dependencia presenta un error | Revisa el mensaje mostrado por Maven y ejecuta nuevamente la prueba afectada para aislar el problema |
